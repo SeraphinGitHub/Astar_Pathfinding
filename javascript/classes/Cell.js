@@ -20,26 +20,8 @@ class Cell {
          y: j *size + size/2,
       };
 
-      this.neighborsList = {};
-      this.fCost = 0;
-      this.gCost = 0;
-      this.hCost = 0;
-      
-      this.isParsable;
-      this.isBuildable;
-      this.isWalkable;
-
-      this.isEuclidean = isEuclidean; // Can move diagonally if "true"
-   }
-
-   setID(i, j) {
-      return `${i}-${j}`;
-   }
-
-   setNeighborsList() {
-
       // Manhattan Neighbors
-      const manhattan = {
+      this.manhattan = {
 
          left: {
             x: this.center.x -this.size,
@@ -60,68 +42,99 @@ class Cell {
             x: this.center.x,
             y: this.center.y +this.size
          }
-      }
+      };
 
-      // Left neighbor
-      if(manhattan.left.x > 0) {
+      // Euclidean Neighbors
+      this.euclidean = {
 
-         const id = this.setID(this.i -1, this.j);
-         this.neighborsList[id] = manhattan.left;
-      }
+         topLeft: {
+            x: this.manhattan.left.x,
+            y: this.manhattan.top.y
+         },
+         
+         topRight: {
+            x: this.manhattan.right.x,
+            y: this.manhattan.top.y
+         },
+         
+         bottomLeft: {
+            x: this.manhattan.left.x,
+            y: this.manhattan.bottom.y
+         },
+         
+         bottomRight: {
+            x: this.manhattan.right.x,
+            y: this.manhattan.bottom.y
+         }
+      };
 
-      // Right neighbor
-      if(manhattan.right.x < this.collums *this.size) {
+      this.neighborsList = {};
+      this.fCost = 0;
+      this.gCost = 0;
+      this.hCost = 0;
+      
+      this.isParsable;
+      this.isBuildable;
+      this.isWalkable;
 
-         const id = this.setID(this.i +1, this.j);
-         this.neighborsList[id] = manhattan.right;
-      }
+      this.isEuclidean = isEuclidean; // Can move diagonally if "true"
+   }
 
-      // Top neighbor
-      if(manhattan.top.y > 0) {
+   setID(i, j) {
+      return `${i}-${j}`;
+   }
 
-         const id = this.setID(this.i, this.j -1);
-         this.neighborsList[id] = manhattan.top;
-      }
+   initNeighborsList() {
 
-      // Bottom neighbor
-      if(manhattan.bottom.y < this.rows *this.size) {
-
-         const id = this.setID(this.i, this.j +1);
-         this.neighborsList[id] = manhattan.bottom;
-      }
+      // Set Manhattan Neighbors
+      this.setNeighbor().left   (this.addNeighbor(-1,  0, this.manhattan.left));
+      this.setNeighbor().right  (this.addNeighbor( 1,  0, this.manhattan.right));
+      this.setNeighbor().top    (this.addNeighbor( 0, -1, this.manhattan.top));
+      this.setNeighbor().bottom (this.addNeighbor( 0,  1, this.manhattan.bottom));
 
 
-      // ==========================================================
-      // If euclidean is active ==> can search diagonally
-      // ==========================================================
+      // Set Euclidean Neighbors if euclidean is active
+      // ==> Can search diagonally
       if(this.isEuclidean) {
 
-         // Euclidean Neighbors
-         const euclidean = {
+         this.setNeighbor().top(() => {
 
-            topLeft: {
-               x: this.center.x -this.size,
-               y: this.center.y -this.size
-            },
-            
-            topRight: {
-               x: this.center.x +this.size,
-               y: this.center.y -this.size
-            },
-            
-            botLeft: {
-               x: this.center.x -this.size,
-               y: this.center.y +this.size
-            },
-            
-            botRight: {
-               x: this.center.x +this.size,
-               y: this.center.y +this.size
-            }
-         }
+            this.setNeighbor().left  (this.addNeighbor(-1, -1, this.euclidean.topLeft));
+            this.setNeighbor().right (this.addNeighbor( 1, -1, this.euclidean.topRight));
+         });
 
+         this.setNeighbor().bottom(() => {
+            
+            this.setNeighbor().left  (this.addNeighbor(-1, 1, this.euclidean.bottomLeft));
+            this.setNeighbor().right (this.addNeighbor( 1, 1, this.euclidean.bottomRight));
+         });
+      }
+   }
 
-         
+   addNeighbor(iValue, jValue, neighbor) {
+
+      const id = this.setID(this.i +iValue, this.j +jValue);
+      this.neighborsList[id] = neighbor;
+   }
+
+   setNeighbor() {
+      return {
+
+         left: (callback) => {
+            if(this.manhattan.left.x > 0) callback();
+         },
+      
+         right: (callback) => {
+            if(this.manhattan.right.x < this.collums *this.size) callback();
+         },
+      
+         top: (callback) => {
+            if(this.manhattan.top.y > 0) callback();
+         },
+      
+         bottom: (callback) => {
+            if(this.manhattan.bottom.y < this.rows *this.size) callback();
+         },
       }
    }
 
