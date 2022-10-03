@@ -19,27 +19,14 @@ class Grid {
       this.rows = (height -(height %cellSize)) /cellSize;
    }
 
-   init() {
+   init(ctx) {
 
       // Init grid
       for(let i = 0; i < this.collums; i++) {
          for(let j = 0; j < this.rows; j++) {
-
-            const cell = new Cell(
-               this.ctx,
-               this.collums,
-               this.rows,
-               this.cellSize,
-               this.cellsList,
-               this.isEuclidean,
-               i, j
-            );
             
-            cell.drawFrame();
-            cell.drawCenter();
-      
+            const cell = new Cell(this.collums, this.rows, this.cellSize, this.isEuclidean, i, j);
             this.cellsList[cell.id] = cell;
-            cell.cellsList = this.cellsList;
          }
       }
 
@@ -47,7 +34,9 @@ class Grid {
       for(let i in this.cellsList) {
          let cell = this.cellsList[i];
 
-         cell.initNeighborsList();
+         cell.initNeighborsList(this.cellsList);
+         cell.drawFrame(ctx);
+         cell.drawCenter(ctx);
       }
    }
 

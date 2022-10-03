@@ -5,9 +5,7 @@
 // Agent Class
 // =====================================================================
 class Agent {
-   constructor(ctx, startCell, endCell, isEuclidean) {
-
-      this.ctx = ctx;
+   constructor(startCell, endCell, isEuclidean) {
 
       this.startCell = startCell;
       this.endCell = endCell;
@@ -15,7 +13,6 @@ class Agent {
       this.closedList = [];
       this.pathArray = [];
       this.isEuclidean = isEuclidean; // Can move diagonally if "true"
-      this.showPath = true;
    }
 
    calcHeuristic(cell) {
@@ -45,21 +42,21 @@ class Agent {
          // Scan cell neighbors
          for(let i in currentCell.neighborsList) {
             let neighbor = currentCell.neighborsList[i];
-
+            
             // If this neighbor hasn't been scanned yet
             if(!this.closedList.includes(neighbor) && neighbor.isWalkable) {
                let possibleG = currentCell.gCost +1;
                
                if(!this.openList.includes(neighbor)) this.openList.push(neighbor);
                else if(possibleG >= neighbor.gCost) continue;
-      
+               
                neighbor.hCost = this.calcHeuristic(neighbor);
                neighbor.gCost = possibleG;
                neighbor.fCost = neighbor.gCost +neighbor.hCost;
                neighbor.cameFromCell = currentCell;
             }
          }
-
+         
          // If reached destination
          if(currentCell.id === this.endCell.id) {
    
@@ -72,8 +69,6 @@ class Agent {
             }
 
             this.pathArray.reverse();
-            if(this.showPath) this.displayPath();
-
             return this.pathArray;
          }
 
@@ -85,56 +80,59 @@ class Agent {
       return [];
    }
 
-   displayPath() {
+   displayPath(ctx) {
 
       // Display scanned neighbors
       let neighborsColor = "rgba(255, 145, 0, 0.35)";
-      this.closedList.forEach(cell => cell.drawPos(neighborsColor));
+      // this.closedList.forEach(cell => cell.drawPos(ctx, neighborsColor));
 
       // Display path
       for(let i = 0; i < this.pathArray.length; i++) {
 
          let currentCell = this.pathArray[i];
-         this.drawHitbox(i, currentCell);
+         this.drawHitbox(ctx, i, currentCell);
          
          if(i +1 < this.pathArray.length) {
             let nextCell = this.pathArray[i +1];
-            this.drawPath(currentCell, nextCell);
+            this.drawPath(ctx, currentCell, nextCell);
          }
       }
    }
 
-   drawPath(currentCell, nextCell) {
+   drawPath(ctx, currentCell, nextCell) {
       
-      this.ctx.strokeStyle = "lime";
-      this.ctx.beginPath();
+      ctx.strokeStyle = "lime";
+      ctx.beginPath();
 
-      this.ctx.moveTo(
+      ctx.moveTo(
          currentCell.center.x,
          currentCell.center.y
       );
 
-      this.ctx.lineTo(
+      ctx.lineTo(
          nextCell.center.x,
          nextCell.center.y
       );
 
-      this.ctx.lineWidth = 4;
-      this.ctx.stroke();
+      ctx.lineWidth = 4;
+      ctx.stroke();
    }
 
-   drawHitbox(i, currentCell) {
+   drawHitbox(ctx, i, currentCell) {
       
       let ratio = 0.6; // 60%
 
       setTimeout(() => {
-         this.ctx.fillStyle = "blue";
-         this.ctx.fillRect(
+         ctx.fillStyle = "blue";
+         ctx.fillRect(
             currentCell.center.x -currentCell.size /2 *ratio,
             currentCell.center.y -currentCell.size /2 *ratio,
             currentCell.size *ratio,
             currentCell.size *ratio
          );
+
+         // currentCell.drawData(ctx);
       }, 100 *i);
+
    }
 }

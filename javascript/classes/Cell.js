@@ -5,15 +5,12 @@
 // Cell Class
 // =====================================================================
 class Cell {
-   constructor(ctx, collums, rows, size, cellsList, isEuclidean, i, j) {
-
-      this.ctx = ctx;
+   constructor(collums, rows, size, isEuclidean, i, j) {
       
       this.id =`${i}-${j}`;
       this.collums = collums;
       this.rows = rows;
       this.size = size;
-      this.cellsList = cellsList;
       this.isEuclidean = isEuclidean;
       this.i = i;
       this.j = j;
@@ -33,9 +30,9 @@ class Cell {
       this.isWalkable = true;
    }
 
-   initNeighborsList() {
+   initNeighborsList(cellsList) {
 
-      const neighborsID = {
+      const nebID = {
          left:  `${this.i -1}-${this.j   }`,
          right: `${this.i +1}-${this.j   }`,
          top:   `${this.i   }-${this.j -1}`,
@@ -47,93 +44,119 @@ class Cell {
          bottomRight:`${this.i +1}-${this.j +1}`,
       };
 
-      this.setNeighbor().left  (() => { this.addNeighbor(neighborsID.left) });
-      this.setNeighbor().top   (() => { this.addNeighbor(neighborsID.top) });
-      this.setNeighbor().right (() => { this.addNeighbor(neighborsID.right) });
-      this.setNeighbor().bottom(() => { this.addNeighbor(neighborsID.bottom) });
+      this.setNeb_Left (cellsList, nebID.left);
+      this.setNeb_Right(cellsList, nebID.right);
+      this.setNeb_Top(   () => { this.addNeb(cellsList, nebID.top   ) });
+      this.setNeb_Bottom(() => { this.addNeb(cellsList, nebID.bottom) });
 
 
       // If Euclidean ==> Can search diagonally
       if(this.isEuclidean) {
 
-         this.setNeighbor().top(() => {
-            this.setNeighbor().left (() => { this.addNeighbor(neighborsID.topLeft) });
-            this.setNeighbor().right(() => { this.addNeighbor(neighborsID.topRight) });
+         this.setNeb_Top(() => {
+            this.setNeb_Left (cellsList, nebID.topLeft);
+            this.setNeb_Right(cellsList, nebID.topRight);
          });
 
-         this.setNeighbor().bottom(() => {
-            this.setNeighbor().right(() => { this.addNeighbor(neighborsID.bottomRight) });
-            this.setNeighbor().left (() => { this.addNeighbor(neighborsID.bottomLeft) });
+         this.setNeb_Bottom(() => {
+            this.setNeb_Left (cellsList, nebID.bottomLeft);
+            this.setNeb_Right(cellsList, nebID.bottomRight);
          });
       }
    } 
 
-   addNeighbor(id) {
-      this.neighborsList[id] = this.cellsList[id];
+   addNeb(cellsList, id) {
+      this.neighborsList[id] = cellsList[id];
    }
 
-   setNeighbor() {
-      return {
-
-         left: (callback) => {
-            if(this.i -1 >= 0) callback();
-         },
-      
-         right: (callback) => {
-            if(this.i +1 < this.collums) callback();
-         },
-      
-         top: (callback) => {
-            if(this.j -1 >= 0) callback();
-         },
-      
-         bottom: (callback) => {
-            if(this.j +1 < this.rows) callback();
-         },
-      }
+   // Set Neighbors
+   setNeb_Left(cellsList, id) {
+      if(this.i -1 >= 0) this.addNeb(cellsList, id);
    }
 
-   drawCenter() {
+   setNeb_Right(cellsList, id) {
+      if(this.i +1 < this.collums) this.addNeb(cellsList, id);
+   }
 
-      this.ctx.fillStyle = "red";
-      this.ctx.beginPath();
-      this.ctx.arc(
+   setNeb_Top(callback) {
+      if(this.j -1 >= 0) callback();
+   }
+
+   setNeb_Bottom(callback) {
+      if(this.j +1 < this.rows) callback();
+   }
+
+
+   // Draw
+   drawCenter(ctx) {
+
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(
          this.center.x,
          this.center.y,
          4, 0, Math.PI * 2
       );
-      this.ctx.fill();
-      this.ctx.closePath();
+      ctx.fill();
+      ctx.closePath();
    }
 
-   drawFrame() {
+   drawFrame(ctx) {
 
-      this.ctx.strokeStyle = "black";
-      this.ctx.fillStyle = "black";
-      this.ctx.lineWidth = 2;
-      this.ctx.font = "20px Verdana";
-      this.ctx.textAlign = "center";
+      ctx.strokeStyle = "black";
+      ctx.fillStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.font = "20px Verdana";
+      ctx.textAlign = "center";
    
-      this.ctx.strokeRect(
+      ctx.strokeRect(
          this.i *this.size,
          this.j *this.size,
          this.size,
          this.size
       );
 
-      this.ctx.fillText(
+      ctx.fillText(
          this.id,
          this.center.x,
          this.center.y -15
       );
    }
 
-   drawTile(position, color) {
+   drawData(ctx) {
 
-      this.ctx.strokeStyle = color;
-      this.ctx.lineWidth = 4;
+      ctx.fillStyle = "black";
+      ctx.font = "18px Verdana";
+      ctx.textAlign = "center";
+
+      // fCost
+      ctx.fillText(
+         this.fCost,
+         this.center.x -20,
+         this.center.y +30
+      );
+      
+      // gCost
+      ctx.fillText(
+         this.gCost,
+         this.center.x +20,
+         this.center.y +30
+      );
+
+      // hCost
+      ctx.fillText(
+         this.hCost,
+         this.center.x -20,
+         this.center.y
+      );
+   }
+
+   drawTile(ctx, position, color) {
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
    
-      this.ctx.strokeRect(
+      ctx.strokeRect(
          position.x,
          position.y,
          this.size,
@@ -141,10 +164,10 @@ class Cell {
       );
    }
 
-   drawWall(position) {
+   drawWall(ctx, position) {
 
-      this.ctx.fillStyle = "dimgray";
-      this.ctx.fillRect(
+      ctx.fillStyle = "dimgray";
+      ctx.fillRect(
          position.x,
          position.y,
          this.size,
@@ -152,10 +175,10 @@ class Cell {
       );
    }
 
-   drawPos(color) {
+   drawPos(ctx, color) {
 
-      this.ctx.fillStyle = color;
-      this.ctx.fillRect(
+      ctx.fillStyle = color;
+      ctx.fillRect(
          this.i *this.size,
          this.j *this.size,
          this.size,
