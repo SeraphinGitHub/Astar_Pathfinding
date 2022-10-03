@@ -5,13 +5,16 @@
 // Cell Class
 // =====================================================================
 class Cell {
-   constructor(ctx, collums, rows, size, i, j, isEuclidean) {
+   constructor(ctx, collums, rows, size, cellsList, isEuclidean, i, j) {
 
       this.ctx = ctx;
-
+      
+      this.id =`${i}-${j}`;
       this.collums = collums;
       this.rows = rows;
       this.size = size;
+      this.cellsList = cellsList;
+      this.isEuclidean = isEuclidean;
       this.i = i;
       this.j = j;
       
@@ -20,122 +23,88 @@ class Cell {
          y: j *size + size/2,
       };
 
-      // Manhattan Neighbors
-      this.manhattan = {
-
-         left: {
-            x: this.center.x -this.size,
-            y: this.center.y
-         },
-
-         right: {
-            x: this.center.x +this.size,
-            y: this.center.y
-         },
-
-         top: {
-            x: this.center.x,
-            y: this.center.y -this.size
-         },
-
-         bottom: {
-            x: this.center.x,
-            y: this.center.y +this.size
-         }
-      };
-
-      // Euclidean Neighbors
-      this.euclidean = {
-
-         topLeft: {
-            x: this.manhattan.left.x,
-            y: this.manhattan.top.y
-         },
-         
-         topRight: {
-            x: this.manhattan.right.x,
-            y: this.manhattan.top.y
-         },
-         
-         bottomLeft: {
-            x: this.manhattan.left.x,
-            y: this.manhattan.bottom.y
-         },
-         
-         bottomRight: {
-            x: this.manhattan.right.x,
-            y: this.manhattan.bottom.y
-         }
-      };
-
       this.neighborsList = {};
+      this.cameFromCell;
+
       this.fCost = 0;
       this.gCost = 0;
       this.hCost = 0;
       
-      this.isParsable;
       this.isBuildable;
       this.isWalkable;
-
-      this.isEuclidean = isEuclidean; // Can move diagonally if "true"
-   }
-
-   setID(i, j) {
-      return `${i}-${j}`;
    }
 
    initNeighborsList() {
 
-      // Set Manhattan Neighbors
-      this.setNeighbor().left   (this.addNeighbor(-1,  0, this.manhattan.left));
-      this.setNeighbor().right  (this.addNeighbor( 1,  0, this.manhattan.right));
-      this.setNeighbor().top    (this.addNeighbor( 0, -1, this.manhattan.top));
-      this.setNeighbor().bottom (this.addNeighbor( 0,  1, this.manhattan.bottom));
+      const neighborsID = {
+         left:  `${this.i -1}-${this.j   }`,
+         right: `${this.i +1}-${this.j   }`,
+         top:   `${this.i   }-${this.j -1}`,
+         bottom:`${this.i   }-${this.j +1}`,
+
+         topLeft:    `${this.i -1}-${this.j -1}`,
+         topRight:   `${this.i +1}-${this.j -1}`,
+         bottomLeft: `${this.i -1}-${this.j +1}`,
+         bottomRight:`${this.i +1}-${this.j +1}`,
+      };
+
+      this.setNeighbor().left  (() => { this.addNeighbor(neighborsID.left) });
+      this.setNeighbor().right (() => { this.addNeighbor(neighborsID.right) });
+      this.setNeighbor().top   (() => { this.addNeighbor(neighborsID.top) });
+      this.setNeighbor().bottom(() => { this.addNeighbor(neighborsID.bottom) });
 
 
-      // Set Euclidean Neighbors if euclidean is active
-      // ==> Can search diagonally
+      // If Euclidean ==> Can search diagonally
       if(this.isEuclidean) {
 
          this.setNeighbor().top(() => {
-
-            this.setNeighbor().left  (this.addNeighbor(-1, -1, this.euclidean.topLeft));
-            this.setNeighbor().right (this.addNeighbor( 1, -1, this.euclidean.topRight));
+            this.setNeighbor().left (() => { this.addNeighbor(neighborsID.topLeft) });
+            this.setNeighbor().right(() => { this.addNeighbor(neighborsID.topRight) });
          });
 
          this.setNeighbor().bottom(() => {
-            
-            this.setNeighbor().left  (this.addNeighbor(-1, 1, this.euclidean.bottomLeft));
-            this.setNeighbor().right (this.addNeighbor( 1, 1, this.euclidean.bottomRight));
+            this.setNeighbor().left (() => { this.addNeighbor(neighborsID.bottomLeft) });
+            this.setNeighbor().right(() => { this.addNeighbor(neighborsID.bottomRight) });
          });
       }
-   }
+   } 
 
-   addNeighbor(iValue, jValue, neighbor) {
-
-      const id = this.setID(this.i +iValue, this.j +jValue);
-      this.neighborsList[id] = neighbor;
+   addNeighbor(id) {
+      this.neighborsList[id] = this.cellsList[id];
    }
 
    setNeighbor() {
       return {
 
          left: (callback) => {
-            if(this.manhattan.left.x > 0) callback();
+            if(this.i -1 >= 0) callback();
          },
       
          right: (callback) => {
-            if(this.manhattan.right.x < this.collums *this.size) callback();
+            if(this.i +1 <= this.collums) callback();
          },
       
          top: (callback) => {
-            if(this.manhattan.top.y > 0) callback();
+            if(this.j -1 >= 0) callback();
          },
       
          bottom: (callback) => {
-            if(this.manhattan.bottom.y < this.rows *this.size) callback();
+            if(this.j +1 <= this.rows) callback();
          },
       }
+   }
+
+   drawCenter() {
+
+      this.ctx.fillStyle = "red";
+      this.ctx.beginPath();
+      this.ctx.arc(
+         this.center.x,
+         this.center.y,
+         4, 0, Math.PI * 2
+      );
+      this.ctx.fill();
+      this.ctx.closePath();
    }
 
    drawFrame() {
@@ -154,23 +123,45 @@ class Cell {
       );
 
       this.ctx.fillText(
-         this.setID(this.i, this.j),
+         this.id,
          this.center.x,
          this.center.y -25
       );
    }
 
-   drawCenter() {
+   drawTile(position, color) {
 
-      this.ctx.fillStyle = "red";
-      this.ctx.beginPath();
-      this.ctx.arc(
-         this.center.x,
-         this.center.y,
-         4, 0, Math.PI * 2
+      this.ctx.strokeStyle = color;
+      this.ctx.lineWidth = 4;
+   
+      this.ctx.strokeRect(
+         position.x,
+         position.y,
+         this.size,
+         this.size
       );
-      this.ctx.fill();
-      this.ctx.closePath();
+   }
+
+   drawWall(position) {
+
+      this.ctx.fillStyle = "dimgray";
+      this.ctx.fillRect(
+         position.x,
+         position.y,
+         this.size,
+         this.size
+      );
+   }
+
+   drawPos(color) {
+
+      this.ctx.fillStyle = color;
+      this.ctx.fillRect(
+         this.i *this.size,
+         this.j *this.size,
+         this.size,
+         this.size
+      );
    }
 
 }

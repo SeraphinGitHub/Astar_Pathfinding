@@ -5,29 +5,49 @@
 // Grid Class
 // =====================================================================
 class Grid {
-   constructor(ctx, width, height, cellSize) {
+   constructor(ctx, width, height, cellSize, isEuclidean) {
 
       this.cellsList = {};
-
+      
       this.ctx = ctx;
       this.width = width;
       this.height = height;
       this.cellSize = cellSize;
+      this.isEuclidean = isEuclidean; // Can move diagonally if "true"
       
       this.collums = (width -(width %cellSize)) /cellSize;
       this.rows = (height -(height %cellSize)) /cellSize;
    }
 
-   init(isEuclidean) {
-      for (let i = 0; i < this.collums; i++) {
-         for (let j = 0; j < this.rows; j++) {
+   init() {
 
-            const cell = new Cell(this.ctx, this.collums, this.rows, this.cellSize, i, j, isEuclidean);
+      // Init grid
+      for(let i = 0; i < this.collums; i++) {
+         for(let j = 0; j < this.rows; j++) {
+
+            const cell = new Cell(
+               this.ctx,
+               this.collums,
+               this.rows,
+               this.cellSize,
+               this.cellsList,
+               this.isEuclidean,
+               i, j
+            );
+            
             cell.drawFrame();
             cell.drawCenter();
-
-            this.cellsList[`${i}-${j}`] = cell;
+      
+            this.cellsList[cell.id] = cell;
+            cell.cellsList = this.cellsList;
          }
+      }
+
+      // Set cells neighborsList
+      for(let i in this.cellsList) {
+         let cell = this.cellsList[i];
+
+         cell.initNeighborsList();
       }
    }
 

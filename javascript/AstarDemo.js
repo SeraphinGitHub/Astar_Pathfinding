@@ -3,8 +3,8 @@ let rows = 5; //rows in the grid
 
 let grid = new Array(cols); //array of all the grid points
 
-let openSet = []; //array containing unevaluated grid points
-let closedSet = []; //array containing completely evaluated grid points
+let openList = []; //array containing unevaluated grid points
+let closedList = []; //array containing completely evaluated grid points
 
 let start; //starting grid point
 let end; // ending grid point (goal)
@@ -70,7 +70,7 @@ function init() {
   start = grid[0][0];
   end = grid[cols - 1][rows - 1];
 
-  openSet.push(start);
+  openList.push(start);
 
   console.log(grid);
 }
@@ -79,44 +79,55 @@ function init() {
 
 function search() {
   init();
-  while (openSet.length > 0) {
+
+  while (openList.length > 0) {
+
     //assumption lowest index is the first one to begin with
     let lowestIndex = 0;
-    for (let i = 0; i < openSet.length; i++) {
-      if (openSet[i].fCost < openSet[lowestIndex].fCost) {
+
+    for (let i = 0; i < openList.length; i++) {
+      if (openList[i].fCost < openList[lowestIndex].fCost) {
         lowestIndex = i;
       }
     }
-    let current = openSet[lowestIndex];
+
+    let current = openList[lowestIndex];
 
     if (current === end) {
+
       let temp = current;
       path.push(temp);
+
       while (temp.parent) {
         path.push(temp.parent);
         temp = temp.parent;
       }
+
       console.log("DONE!");
+
       // return the traced path
       return path.reverse();
     }
 
-    //remove current from openSet
-    openSet.splice(lowestIndex, 1);
-    //add current to closedSet
-    closedSet.push(current);
+    //remove current from openList
+    openList.splice(lowestIndex, 1);
 
-    let neighbors = current.neighbors;
+    //add current to closedList
+    closedList.push(current);
+
+    let neighbors = current.neighbors; // Array;
 
     for (let i = 0; i < neighbors.length; i++) {
       let neighbor = neighbors[i];
 
-      if (!closedSet.includes(neighbor)) {
+      if (!closedList.includes(neighbor)) {
         let possibleG = current.gCost + 1;
 
-        if (!openSet.includes(neighbor)) {
-          openSet.push(neighbor);
-        } else if (possibleG >= neighbor.gCost) {
+        if (!openList.includes(neighbor)) {
+          openList.push(neighbor);
+        }
+
+        else if (possibleG >= neighbor.gCost) {
           continue;
         }
 

@@ -7,96 +7,31 @@ const DOM = {
    mouseY: document.querySelector(".coordinates .mouseY"),
    cellX: document.querySelector(".coordinates .cellX"),
    cellY: document.querySelector(".coordinates .cellY"),
-}
-
-const OldGrid = {
-
-   cellSize: 100,
-   collums: 6,
-   rows: 4,
+   cellID: document.querySelector(".coordinates .ID-cell"),
 }
 
 let cellsArray = [];
 let wallsArray = [];
-
-
-const isEuclidean = false;
+let isEuclidean = false;
+let unitGridPos;
+let startCell;
+let endCell;
 
 const canvas = document.querySelector(".canvas-1");
 const unitCtx = canvas.getContext("2d");
-const unitGrid = new Grid(unitCtx, 500, 300, 100, isEuclidean);
 
-const agent = new Agent(unitCtx, {x: 50, y: 50}, {x: 50, y: 50}, isEuclidean);
+const unitGrid = new Grid(unitCtx, 500, 300, 100, isEuclidean);
+const agent = new Agent(unitCtx, {}, {}, isEuclidean);
 
 canvas.width = unitGrid.width;
 canvas.height = unitGrid.height;
 
+
 const clearCanvas = () => {
-   ctx.clearRect(0, 0, canvas.width, canvas.height);
+   unitCtx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-const setOldGrid = () => {
-
-   for(let i = 0; i < OldGrid.collums; i++) {
-      for(let j = 0; j < OldGrid.rows; j++) {
-         
-         cellsArray.push([i, j]);
-      }
-   }
-}
-
-const drawOldGrid = () => {
-
-   ctx.strokeStyle = "black";
-   ctx.fillStyle = "black";
-   ctx.lineWidth = 2;
-   ctx.font = "20px Verdana";
-
-   cellsArray.forEach(cell => {
-
-      ctx.strokeRect(
-         cell[0] *OldGrid.cellSize,
-         cell[1] *OldGrid.cellSize,
-         OldGrid.cellSize,
-         OldGrid.cellSize
-      );
-
-      ctx.fillText(
-         `${cell[0]} , ${cell[1]}`,
-         cell[0] *OldGrid.cellSize +25,
-         cell[1] *OldGrid.cellSize +60
-      );
-   });
-}
-
-const drawTile = (OldGridPos, color) => {
-
-   ctx.strokeStyle = color;
-   ctx.lineWidth = 4;
-
-   ctx.strokeRect(
-      OldGridPos.x,
-      OldGridPos.y,
-      OldGrid.cellSize,
-      OldGrid.cellSize
-   );
-}
-
-const drawWalls = () => {
-
-   ctx.fillStyle = "dimgray";
-   
-   wallsArray.forEach(wall => {
-      ctx.fillRect(
-         wall[0] *OldGrid.cellSize,
-         wall[1] *OldGrid.cellSize,
-         OldGrid.cellSize,
-         OldGrid.cellSize
-      );
-   });
-}
-
-const getOldGridPosition = (event) => {
+const getunitGridPosition = (event) => {
 
    const bounderies = canvas.getBoundingClientRect();
 
@@ -108,51 +43,107 @@ const getOldGridPosition = (event) => {
    return {
       mousePosX: mousePos.x,
       mousePosY: mousePos.y,
-      x: mousePos.x - (mousePos.x % OldGrid.cellSize),
-      y: mousePos.y - (mousePos.y % OldGrid.cellSize),
+      x: mousePos.x - (mousePos.x % unitGrid.cellSize),
+      y: mousePos.y - (mousePos.y % unitGrid.cellSize),
    }
 }
 
-const mouseHandler = () => {
+const cycleGrid = (callback) => {
+
+   for(let i in unitGrid.cellsList) {
+      let cell = unitGrid.cellsList[i];
+
+      callback(cell);
+   }
+}
+
+const gameHandler = () => {
 
    canvas.addEventListener("mousemove", (event) => {
-      const OldGridPos = getOldGridPosition(event);
+      unitGridPos = getunitGridPosition(event);
 
-      DOM.mouseX.textContent = `x : ${OldGridPos.mousePosX}`;
-      DOM.mouseY.textContent = `y : ${OldGridPos.mousePosY}`;
-      DOM.cellX.textContent = `x : ${OldGridPos.x}`;
-      DOM.cellY.textContent = `y : ${OldGridPos.y}`;
+      DOM.mouseX.textContent = `x : ${unitGridPos.mousePosX}`;
+      DOM.mouseY.textContent = `y : ${unitGridPos.mousePosY}`;
+      DOM.cellX.textContent = `x : ${unitGridPos.x}`;
+      DOM.cellY.textContent = `y : ${unitGridPos.y}`;
       
       clearCanvas();
-      drawOldGrid();
-      drawWalls();
-      drawTile(OldGridPos, "blue");
+      wallsArray.forEach(cell => cell.drawWall({ x: cell.i * cell.size, y: cell.j * cell.size }));
+      if(startCell) startCell.drawPos("lime");
+      if(endCell) endCell.drawPos("dodgerblue");
+      
+      cycleGrid((cell) => {
+         let mouseCellID = `${unitGridPos.x /cell.size}-${unitGridPos.y /cell.size}`;
+         if(cell.id === mouseCellID) DOM.cellID.textContent = `id : ${cell.id}`;
+
+         cell.drawFrame();
+         cell.drawCenter();
+         cell.drawTile(unitGridPos, "blue");
+      });
    });
    
    canvas.addEventListener("mousedown", (event) => {
-      const OldGridPos = getOldGridPosition(event);
+      unitGridPos = getunitGridPosition(event);
 
-      if(event.which === 1) drawTile(OldGridPos, "red");
-      if(event.which === 3) {
+      cycleGrid((cell) => {
+         let mouseCellID = `${unitGridPos.x /cell.size}-${unitGridPos.y /cell.size}`;
 
-         const newWall = [
-            OldGridPos.x /OldGrid.cellSize,
-            OldGridPos.y /OldGrid.cellSize
-         ];
+         if(cell.id === mouseCellID) {
 
-         const wallIndex = wallsArray.findIndex(wall => wall[0] === newWall[0] && wall[1] === newWall[1]);
-
-         if(wallIndex === -1) wallsArray.push(newWall);
-         else wallsArray.splice(wallIndex, 1);
-
-         drawWalls();
-      }
+            if(event.which === 1) cell.drawTile(unitGridPos, "red");
+            if(event.which === 3) {
+   
+               if(!wallsArray.includes(cell)) wallsArray.push(cell);
+               else {
+                  let wallIndex = wallsArray.indexOf(cell);
+                  wallsArray.splice(wallIndex, 1);
+               }
+   
+               cell.drawWall(unitGridPos);
+            }
+         }
+      });
    });
 
    canvas.addEventListener("mouseup", (event) => {
-      const OldGridPos = getOldGridPosition(event);
+      unitGridPos = getunitGridPosition(event);
 
-      if(event.which === 1) drawTile(OldGridPos, "blue");
+      cycleGrid((cell) => {
+         let mouseCellID = `${unitGridPos.x /cell.size}-${unitGridPos.y /cell.size}`;
+         
+         if(cell.id === mouseCellID) {
+            
+            if(event.which === 1) cell.drawTile(unitGridPos, "blue");
+         }
+      });
+   });
+
+   window.addEventListener("keydown", (event) => {
+      
+      cycleGrid((cell) => {
+         let mouseCellID = `${unitGridPos.x /cell.size}-${unitGridPos.y /cell.size}`;
+         
+         if(cell.id === mouseCellID) {
+
+            if(event.key === "1") {            
+               agent.startCell = cell.center;
+               startCell = cell;
+               cell.drawPos("lime");
+            }
+            
+            if(event.key === "2") {            
+               agent.endCell = cell.center;
+               endCell = cell;
+               cell.drawPos("dodgerblue");
+            }
+         }
+      });
+
+      if(event.key === "3") {
+         console.log( agent.startCell );
+         console.log( agent.endCell );
+         console.log( agent.searchPath() );
+      }
    });
 }
 
@@ -163,11 +154,7 @@ document.body.oncontextmenu = (event) => {
 
 window.addEventListener("load", () => {
 
-   // setOldGrid();
-   // drawOldGrid();
-   // mouseHandler();  
-   
+   gameHandler();  
    agent.drawHitbox(80);
-   unitGrid.init(isEuclidean);
-
+   unitGrid.init();
 });
