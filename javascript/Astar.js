@@ -10,18 +10,22 @@ const DOM = {
    cellID: document.querySelector(".coordinates .ID-cell"),
 }
 
-let cellsArray = [];
-let wallsArray = [];
-let isEuclidean = false;
+// let isEuclidean = false;
+let isEuclidean = true;
+
 let unitGridPos;
 let startCell;
 let endCell;
+let startCell_Color = "blue";
+let endCell_Color = "red";
+
+const gridHeight = 800;
+const gridWidth = 1200;
+const cellSize = 80;
 
 const canvas = document.querySelector(".canvas-1");
 const unitCtx = canvas.getContext("2d");
-
-const unitGrid = new Grid(unitCtx, 500, 300, 100, isEuclidean);
-const agent = new Agent(unitCtx, {}, {}, isEuclidean);
+const unitGrid = new Grid(unitCtx, gridWidth, gridHeight, cellSize, isEuclidean);
 
 canvas.width = unitGrid.width;
 canvas.height = unitGrid.height;
@@ -68,9 +72,14 @@ const gameHandler = () => {
       DOM.cellY.textContent = `y : ${unitGridPos.y}`;
       
       clearCanvas();
-      wallsArray.forEach(cell => cell.drawWall({ x: cell.i * cell.size, y: cell.j * cell.size }));
-      if(startCell) startCell.drawPos("lime");
-      if(endCell) endCell.drawPos("dodgerblue");
+      
+      for(let i in unitGrid.cellsList) {
+         let cell = unitGrid.cellsList[i];
+         if(!cell.isWalkable) cell.drawWall({ x: cell.i * cell.size, y: cell.j * cell.size });
+      }
+
+      if(startCell) startCell.drawPos(startCell_Color);
+      if(endCell) endCell.drawPos(endCell_Color);
       
       cycleGrid((cell) => {
          let mouseCellID = `${unitGridPos.x /cell.size}-${unitGridPos.y /cell.size}`;
@@ -90,59 +99,51 @@ const gameHandler = () => {
 
          if(cell.id === mouseCellID) {
 
-            if(event.which === 1) cell.drawTile(unitGridPos, "red");
+            // Mouse left click
+            if(event.which === 1) {
+               
+               if(!startCell) {
+
+                  startCell = cell;
+                  cell.drawPos(startCell_Color);
+                  cell.drawFrame();
+                  cell.drawCenter();
+               }
+      
+               else if(!endCell) {
+
+                  endCell = cell;
+                  cell.drawPos(endCell_Color);
+                  cell.drawFrame();
+                  cell.drawCenter();
+               }
+
+               else if(endCell) endCell = undefined;
+            }
+            
+            // Mouse right click
             if(event.which === 3) {
    
-               if(!wallsArray.includes(cell)) wallsArray.push(cell);
-               else {
-                  let wallIndex = wallsArray.indexOf(cell);
-                  wallsArray.splice(wallIndex, 1);
-               }
+               if(cell.isWalkable) cell.isWalkable = false;
+               else cell.isWalkable = true;
    
                cell.drawWall(unitGridPos);
+               cell.drawFrame();
+               cell.drawCenter();
             }
-         }
-      });
-   });
-
-   canvas.addEventListener("mouseup", (event) => {
-      unitGridPos = getunitGridPosition(event);
-
-      cycleGrid((cell) => {
-         let mouseCellID = `${unitGridPos.x /cell.size}-${unitGridPos.y /cell.size}`;
-         
-         if(cell.id === mouseCellID) {
-            
-            if(event.which === 1) cell.drawTile(unitGridPos, "blue");
          }
       });
    });
 
    window.addEventListener("keydown", (event) => {
       
-      cycleGrid((cell) => {
-         let mouseCellID = `${unitGridPos.x /cell.size}-${unitGridPos.y /cell.size}`;
-         
-         if(cell.id === mouseCellID) {
+      if(event.key === "Enter") {
+         const agent = new Agent(unitCtx, startCell, endCell, isEuclidean);
+         agent.searchPath();
+      }
 
-            if(event.key === "1") {            
-               agent.startCell = cell.center;
-               startCell = cell;
-               cell.drawPos("lime");
-            }
-            
-            if(event.key === "2") {            
-               agent.endCell = cell.center;
-               endCell = cell;
-               cell.drawPos("dodgerblue");
-            }
-         }
-      });
-
-      if(event.key === "3") {
-         console.log( agent.startCell );
-         console.log( agent.endCell );
-         console.log( agent.searchPath() );
+      if(event.key === "Escape") {
+         location.reload();
       }
    });
 }
@@ -153,8 +154,6 @@ document.body.oncontextmenu = (event) => {
 }
 
 window.addEventListener("load", () => {
-
    gameHandler();  
-   agent.drawHitbox(80);
    unitGrid.init();
 });

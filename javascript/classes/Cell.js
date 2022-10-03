@@ -30,8 +30,7 @@ class Cell {
       this.gCost = 0;
       this.hCost = 0;
       
-      this.isBuildable;
-      this.isWalkable;
+      this.isWalkable = true;
    }
 
    initNeighborsList() {
@@ -49,8 +48,8 @@ class Cell {
       };
 
       this.setNeighbor().left  (() => { this.addNeighbor(neighborsID.left) });
-      this.setNeighbor().right (() => { this.addNeighbor(neighborsID.right) });
       this.setNeighbor().top   (() => { this.addNeighbor(neighborsID.top) });
+      this.setNeighbor().right (() => { this.addNeighbor(neighborsID.right) });
       this.setNeighbor().bottom(() => { this.addNeighbor(neighborsID.bottom) });
 
 
@@ -63,8 +62,8 @@ class Cell {
          });
 
          this.setNeighbor().bottom(() => {
-            this.setNeighbor().left (() => { this.addNeighbor(neighborsID.bottomLeft) });
             this.setNeighbor().right(() => { this.addNeighbor(neighborsID.bottomRight) });
+            this.setNeighbor().left (() => { this.addNeighbor(neighborsID.bottomLeft) });
          });
       }
    } 
@@ -81,7 +80,7 @@ class Cell {
          },
       
          right: (callback) => {
-            if(this.i +1 <= this.collums) callback();
+            if(this.i +1 < this.collums) callback();
          },
       
          top: (callback) => {
@@ -89,7 +88,7 @@ class Cell {
          },
       
          bottom: (callback) => {
-            if(this.j +1 <= this.rows) callback();
+            if(this.j +1 < this.rows) callback();
          },
       }
    }
@@ -125,7 +124,7 @@ class Cell {
       this.ctx.fillText(
          this.id,
          this.center.x,
-         this.center.y -25
+         this.center.y -15
       );
    }
 
