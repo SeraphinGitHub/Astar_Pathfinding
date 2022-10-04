@@ -27,7 +27,7 @@ class Cell {
       this.gCost = 0;
       this.hCost = 0;
       
-      this.isWalkable = true;
+      this.isBlocked = false;
    }
 
    initNeighborsList(cellsList) {
@@ -68,6 +68,7 @@ class Cell {
    addNeb(cellsList, id) {
       this.neighborsList[id] = cellsList[id];
    }
+
 
    // Set Neighbors
    setNeb_Left(cellsList, id) {
@@ -125,30 +126,32 @@ class Cell {
 
    drawData(ctx) {
 
-      ctx.fillStyle = "black";
+      ctx.fillStyle = "white";
       ctx.font = "18px Verdana";
-      ctx.textAlign = "center";
+      ctx.textAlign = "left";
 
-      // fCost
-      ctx.fillText(
-         this.fCost,
-         this.center.x -20,
-         this.center.y +30
-      );
-      
-      // gCost
-      ctx.fillText(
-         this.gCost,
-         this.center.x +20,
-         this.center.y +30
-      );
+      let offsetX = 27;
 
       // hCost
       ctx.fillText(
-         this.hCost,
-         this.center.x -20,
-         this.center.y
+         `h:${this.hCost}`,
+         this.center.x -offsetX,
+         this.center.y -12
       );
+
+      // gCost
+      ctx.fillText(
+         `g:${this.gCost}`,
+         this.center.x -offsetX,
+         this.center.y +5
+      );
+
+      // fCost
+      ctx.fillText(
+         `f:${this.fCost}`,
+         this.center.x -offsetX,
+         this.center.y +27
+      );      
    }
 
    drawTile(ctx, position, color) {
@@ -175,7 +178,7 @@ class Cell {
       );
    }
 
-   drawPos(ctx, color) {
+   drawStartEnd(ctx, color) {
 
       ctx.fillStyle = color;
       ctx.fillRect(

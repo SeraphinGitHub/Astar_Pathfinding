@@ -16,6 +16,7 @@ let isEuclidean = true;
 let gridPos;
 let startCell;
 let endCell;
+let agent;
 let startCell_Color = "yellow";
 let endCell_Color = "red";
 
@@ -61,6 +62,7 @@ const cycleGrid = (callback) => {
    }
 }
 
+
 const gameHandler = () => {
 
    canvas.addEventListener("mousemove", (event) => {
@@ -73,17 +75,15 @@ const gameHandler = () => {
       
       clearCanvas();
       
-      for(let i in grid.cellsList) {
-         let cell = grid.cellsList[i];
-         if(!cell.isWalkable) cell.drawWall(ctx, { x: cell.i * cell.size, y: cell.j * cell.size });
-      }
+      if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
+      if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
+      if(agent) agent.displayPath(ctx);
 
-      if(startCell) startCell.drawPos(ctx, startCell_Color);
-      if(endCell) endCell.drawPos(ctx, endCell_Color);
-      
       cycleGrid((cell) => {
          let mouseCellID = `${gridPos.x /cell.size}-${gridPos.y /cell.size}`;
+
          if(cell.id === mouseCellID) DOM.cellID.textContent = `id : ${cell.id}`;
+         if(cell.isBlocked) cell.drawWall(ctx, { x: cell.i * cell.size, y: cell.j * cell.size });
 
          cell.drawFrame(ctx);
          cell.drawCenter(ctx);
@@ -105,7 +105,7 @@ const gameHandler = () => {
                if(!startCell) {
 
                   startCell = cell;
-                  cell.drawPos(ctx, startCell_Color);
+                  cell.drawStartEnd(ctx, startCell_Color);
                   cell.drawFrame(ctx);
                   cell.drawCenter(ctx);
                }
@@ -113,7 +113,7 @@ const gameHandler = () => {
                else if(!endCell) {
 
                   endCell = cell;
-                  cell.drawPos(ctx, endCell_Color);
+                  cell.drawStartEnd(ctx, endCell_Color);
                   cell.drawFrame(ctx);
                   cell.drawCenter(ctx);
                }
@@ -124,8 +124,8 @@ const gameHandler = () => {
             // Mouse right click
             if(event.which === 3) {
    
-               if(cell.isWalkable) cell.isWalkable = false;
-               else cell.isWalkable = true;
+               if(!cell.isBlocked) cell.isBlocked = true;
+               else cell.isBlocked = false;
    
                cell.drawWall(ctx, gridPos);
                cell.drawFrame(ctx);
@@ -138,8 +138,13 @@ const gameHandler = () => {
    window.addEventListener("keydown", (event) => {
       
       if(event.key === "Enter") {
-         const agent = new Agent(startCell, endCell, isEuclidean);
+         
+         let isUnit = true;
+         agent = new Agent(startCell, endCell, isEuclidean, isUnit);
+
          agent.searchPath();
+         agent.showPath = true;
+         // agent.showData = true;
          agent.displayPath(ctx);
       }
 
