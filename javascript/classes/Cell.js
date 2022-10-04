@@ -44,39 +44,40 @@ class Cell {
          bottomRight:`${this.i +1}-${this.j +1}`,
       };
 
-      this.setNeb_Left (cellsList, nebID.left);
-      this.setNeb_Right(cellsList, nebID.right);
-      this.setNeb_Top(   () => { this.addNeb(cellsList, nebID.top   ) });
-      this.setNeb_Bottom(() => { this.addNeb(cellsList, nebID.bottom) });
+      this.setNeb_Left (cellsList, nebID, nebID.left);
+      this.setNeb_Right(cellsList, nebID,nebID.right);
+      this.setNeb_Top(   () => { this.addNeb(cellsList, nebID,nebID.top   ) });
+      this.setNeb_Bottom(() => { this.addNeb(cellsList, nebID,nebID.bottom) });
 
 
       // If Euclidean ==> Can search diagonally
       if(this.isEuclidean) {
 
          this.setNeb_Top(() => {
-            this.setNeb_Left (cellsList, nebID.topLeft);
-            this.setNeb_Right(cellsList, nebID.topRight);
+            this.setNeb_Left (cellsList, nebID, nebID.topLeft);
+            this.setNeb_Right(cellsList, nebID, nebID.topRight);
          });
 
          this.setNeb_Bottom(() => {
-            this.setNeb_Left (cellsList, nebID.bottomLeft);
-            this.setNeb_Right(cellsList, nebID.bottomRight);
+            this.setNeb_Left (cellsList, nebID, nebID.bottomLeft);
+            this.setNeb_Right(cellsList, nebID, nebID.bottomRight);
          });
       }
    } 
 
-   addNeb(cellsList, id) {
-      this.neighborsList[id] = cellsList[id];
+   addNeb(cellsList, nebID, id) {
+      let side = Object.keys(nebID).find(key => nebID[key] === id);
+      this.neighborsList[side] = cellsList[id];
    }
 
 
    // Set Neighbors
-   setNeb_Left(cellsList, id) {
-      if(this.i -1 >= 0) this.addNeb(cellsList, id);
+   setNeb_Left(cellsList, nebID, id) {
+      if(this.i -1 >= 0) this.addNeb(cellsList, nebID, id);
    }
 
-   setNeb_Right(cellsList, id) {
-      if(this.i +1 < this.collums) this.addNeb(cellsList, id);
+   setNeb_Right(cellsList, nebID, id) {
+      if(this.i +1 < this.collums) this.addNeb(cellsList, nebID, id);
    }
 
    setNeb_Top(callback) {

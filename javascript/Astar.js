@@ -138,9 +138,7 @@ const gameHandler = () => {
    window.addEventListener("keydown", (event) => {
       
       if(event.key === "Enter") {
-         
-         let isUnit = true;
-         agent = new Agent(startCell, endCell, isEuclidean, isUnit);
+         agent = new Agent(startCell, endCell, isEuclidean);
 
          agent.searchPath();
          agent.showPath = true;

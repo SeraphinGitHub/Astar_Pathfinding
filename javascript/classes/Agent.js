@@ -5,7 +5,7 @@
 // Agent Class
 // =====================================================================
 class Agent {
-   constructor(startCell, endCell, isEuclidean, isUnit ) {
+   constructor(startCell, endCell, isEuclidean ) {
 
       this.startCell = startCell;
       this.endCell = endCell;
@@ -16,7 +16,6 @@ class Agent {
       this.showPath = false;
       this.showData = false;
       this.isEuclidean = isEuclidean; // Can move diagonally if "true"
-      this.isUnit = isUnit;
    }
 
    calcHeuristic(cell) {
@@ -34,7 +33,7 @@ class Agent {
 
          let lowestIndex = 0;
 
-         // Set lowest cell fCost's index
+         // Bring up lowest fCost index
          for(let i = 0; i < this.openList.length; i++) {
             if(this.openList[lowestIndex].fCost > this.openList[i].fCost) {
                lowestIndex = i;
@@ -42,16 +41,17 @@ class Agent {
          }
 
          let currentCell = this.openList[lowestIndex];
+         let nebList = currentCell.neighborsList;
 
          // Scan cell neighbors
-         for(let i in currentCell.neighborsList) {
-            let neighbor = currentCell.neighborsList[i];
+         for(let i in nebList) {
+            let neighbor = nebList[i];
             
             // If this neighbor hasn't been scanned yet
             if(!this.closedList.includes(neighbor) && !neighbor.isBlocked) {
                let possibleG = currentCell.gCost +1;
                
-               if(!this.openList.includes(neighbor)) this.openList.push(neighbor);
+               if(!this.openList.includes(neighbor)) this.checkWallDiag(nebList, neighbor);
                else if(possibleG >= neighbor.gCost) continue;
                
                neighbor.hCost = this.calcHeuristic(neighbor);
@@ -82,6 +82,28 @@ class Agent {
       }
 
       return [];
+   }
+
+   checkWallDiag(nebList, neighbor) {
+      
+      let topNeb = nebList["top"];
+      let bottomNeb = nebList["bottom"];
+      let leftNeb = nebList["left"];
+      let rightNeb = nebList["right"];
+
+      let topLeftNeb = nebList["topLeft"];
+      let topRightNeb = nebList["topRight"];
+      let bottomLeftNeb = nebList["bottomLeft"];
+      let bottomRightNeb = nebList["bottomRight"];
+
+      if( !(topNeb    && leftNeb  && topNeb.isBlocked    && leftNeb.isBlocked  && neighbor === topLeftNeb
+         || topNeb    && rightNeb && topNeb.isBlocked    && rightNeb.isBlocked && neighbor === topRightNeb
+         || bottomNeb && leftNeb  && bottomNeb.isBlocked && leftNeb.isBlocked  && neighbor === bottomLeftNeb
+         || bottomNeb && rightNeb && bottomNeb.isBlocked && rightNeb.isBlocked && neighbor === bottomRightNeb
+         || this.isEuclidean
+      )) {
+         this.openList.push(neighbor);
+      }
    }
 
    displayPath(ctx) {
