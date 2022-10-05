@@ -13,10 +13,14 @@ const DOM = {
 // let isEuclidean = false;
 let isEuclidean = true;
 
-let gridPos;
+let cellPos;
+let agent;
+
 let startCell;
 let endCell;
-let agent;
+
+let startWall;
+
 let startCell_Color = "yellow";
 let endCell_Color = "red";
 
@@ -26,7 +30,7 @@ const cellSize = 80;
 
 const canvas = document.querySelector(".canvas-1");
 const ctx = canvas.getContext("2d");
-const grid = new Grid(ctx, gridWidth, gridHeight, cellSize, isEuclidean);
+const grid = new Grid(gridWidth, gridHeight, cellSize);
 
 canvas.width = grid.width;
 canvas.height = grid.height;
@@ -36,7 +40,20 @@ const clearCanvas = () => {
    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-const getgridPosition = (event) => {
+const clearClickedCell = (cellPos) => {
+   ctx.clearRect(cellPos.x, cellPos.y, grid.cellSize, grid.cellSize);
+}
+
+const setDOM = (cellPos) => {
+
+   DOM.mouseX.textContent = `x : ${cellPos.mouseX}`;
+   DOM.mouseY.textContent = `y : ${cellPos.mouseY}`;
+   DOM.cellX.textContent = `x : ${cellPos.x}`;
+   DOM.cellY.textContent = `y : ${cellPos.y}`;
+   DOM.cellID.textContent = `id : ${cellPos.id}`;
+}
+
+const getCellPosition = (event) => {
 
    const bounderies = canvas.getBoundingClientRect();
 
@@ -45,15 +62,25 @@ const getgridPosition = (event) => {
       y: event.clientY -bounderies.top,
    }
 
-   return {
-      mousePosX: mousePos.x,
-      mousePosY: mousePos.y,
+   const cellPos = {
       x: mousePos.x - (mousePos.x % grid.cellSize),
       y: mousePos.y - (mousePos.y % grid.cellSize),
    }
+
+   let cellID = `${cellPos.x /grid.cellSize}-${cellPos.y /grid.cellSize}`;
+
+   return {
+      mouseX: mousePos.x,
+      mouseY: mousePos.y,
+      centerX: cellPos.x +grid.cellSize /2,
+      centerY: cellPos.y +grid.cellSize /2,
+      x: cellPos.x,
+      y: cellPos.y,
+      id: cellID,
+   }
 }
 
-const cycleGrid = (callback) => {
+const cycleCells = (callback) => {
 
    for(let i in grid.cellsList) {
       let cell = grid.cellsList[i];
@@ -62,79 +89,100 @@ const cycleGrid = (callback) => {
    }
 }
 
+const drawCellInfo = (cell) => {
+
+   cell.drawFrame(ctx);
+   cell.drawCenter(ctx);
+   cell.drawID(ctx);
+}
 
 const gameHandler = () => {
 
+   // ================================================
+   // Mouse Hover
+   // ================================================
    canvas.addEventListener("mousemove", (event) => {
-      gridPos = getgridPosition(event);
-
-      DOM.mouseX.textContent = `x : ${gridPos.mousePosX}`;
-      DOM.mouseY.textContent = `y : ${gridPos.mousePosY}`;
-      DOM.cellX.textContent = `x : ${gridPos.x}`;
-      DOM.cellY.textContent = `y : ${gridPos.y}`;
       
+      cellPos = getCellPosition(event);
+      setDOM(cellPos);      
       clearCanvas();
       
       if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
       if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
       if(agent) agent.displayPath(ctx);
 
-      cycleGrid((cell) => {
-         let mouseCellID = `${gridPos.x /cell.size}-${gridPos.y /cell.size}`;
+      cycleCells((cell) => {
+         
+         const wall = {
+            x: cell.i *cell.size,
+            y: cell.j *cell.size,
+         }
 
-         if(cell.id === mouseCellID) DOM.cellID.textContent = `id : ${cell.id}`;
-         if(cell.isBlocked) cell.drawWall(ctx, { x: cell.i * cell.size, y: cell.j * cell.size });
+         if(cell.isBlocked) cell.drawWall(ctx, wall, true);
 
-         cell.drawFrame(ctx);
-         cell.drawCenter(ctx);
-         cell.drawTile(ctx, gridPos, "blue");
+         drawCellInfo(cell);
+         cell.drawHover(ctx, cellPos, "blue");
       });
+
+      if(drawingWalls) startWall.drawPathWall(ctx, cellPos);
    });
    
+   
+   // ================================================
+   // Mouse Click
+   // ================================================
    canvas.addEventListener("mousedown", (event) => {
-      gridPos = getgridPosition(event);
 
-      cycleGrid((cell) => {
-         let mouseCellID = `${gridPos.x /cell.size}-${gridPos.y /cell.size}`;
+      cycleCells((cell) => {
+         if(cell.id === cellPos.id) {
 
-         if(cell.id === mouseCellID) {
-
-            // Mouse left click
+            // Left click
             if(event.which === 1) {
-               
-               if(!startCell) {
 
+               // Draw StartPos
+               if(!startCell) {
                   startCell = cell;
                   cell.drawStartEnd(ctx, startCell_Color);
-                  cell.drawFrame(ctx);
-                  cell.drawCenter(ctx);
+                  drawCellInfo(cell);
                }
-      
+               
+               // Draw EndPos
                else if(!endCell) {
-
                   endCell = cell;
                   cell.drawStartEnd(ctx, endCell_Color);
-                  cell.drawFrame(ctx);
-                  cell.drawCenter(ctx);
+                  drawCellInfo(cell);
                }
-
-               else if(endCell) endCell = undefined;
+               
+               // Erase StartPos && EndPos
+               else {
+                  if(endCell && cellPos.id === endCell.id) endCell = undefined;
+                  if(startCell && cellPos.id === startCell.id) startCell = undefined;
+               }
             }
             
-            // Mouse right click
+            
+            // Right click
             if(event.which === 3) {
    
-               if(!cell.isBlocked) cell.isBlocked = true;
-               else cell.isBlocked = false;
-   
-               cell.drawWall(ctx, gridPos);
-               cell.drawFrame(ctx);
-               cell.drawCenter(ctx);
+               if(!cell.isBlocked) {
+                  startWall = cell;
+                  cell.isBlocked = true;
+                  cell.drawWall(ctx, cellPos, true);
+               }
+               
+               else {
+                  cell.isBlocked = false;
+                  clearClickedCell(cellPos);
+               }
+
+               drawCellInfo(cell);
             }
          }
       });
    });
 
+
+   // Search Path
    window.addEventListener("keydown", (event) => {
       
       if(event.key === "Enter") {
@@ -158,6 +206,8 @@ document.body.oncontextmenu = (event) => {
 }
 
 window.addEventListener("load", () => {
+   
    gameHandler();  
-   grid.init(ctx);
+   grid.init(isEuclidean);
+   cycleCells((cell) => drawCellInfo(cell));
 });

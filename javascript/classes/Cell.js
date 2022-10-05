@@ -49,10 +49,9 @@ class Cell {
       this.setNeb_Top(   () => { this.addNeb(cellsList, nebID,nebID.top   ) });
       this.setNeb_Bottom(() => { this.addNeb(cellsList, nebID,nebID.bottom) });
 
-
       // If Euclidean ==> Can search diagonally
       if(this.isEuclidean) {
-
+      
          this.setNeb_Top(() => {
             this.setNeb_Left (cellsList, nebID, nebID.topLeft);
             this.setNeb_Right(cellsList, nebID, nebID.topRight);
@@ -106,10 +105,7 @@ class Cell {
    drawFrame(ctx) {
 
       ctx.strokeStyle = "black";
-      ctx.fillStyle = "black";
       ctx.lineWidth = 2;
-      ctx.font = "20px Verdana";
-      ctx.textAlign = "center";
    
       ctx.strokeRect(
          this.i *this.size,
@@ -117,6 +113,26 @@ class Cell {
          this.size,
          this.size
       );
+   }
+
+   drawHover(ctx, position, color) {
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 4;
+   
+      ctx.strokeRect(
+         position.x,
+         position.y,
+         this.size,
+         this.size
+      );
+   }
+
+   drawID(ctx) {
+
+      ctx.fillStyle = "black";
+      ctx.font = "20px Verdana";
+      ctx.textAlign = "center";
 
       ctx.fillText(
          this.id,
@@ -155,12 +171,14 @@ class Cell {
       );      
    }
 
-   drawTile(ctx, position, color) {
+   drawWall(ctx, position, isBuilt) {
 
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 4;
-   
-      ctx.strokeRect(
+      let wallColor;
+      if(isBuilt) wallColor = "dimgray";
+      else wallColor = "rgba(105, 105, 105, 0.4)";
+      
+      ctx.fillStyle = wallColor;
+      ctx.fillRect(
          position.x,
          position.y,
          this.size,
@@ -168,15 +186,23 @@ class Cell {
       );
    }
 
-   drawWall(ctx, position) {
+   drawPathWall(ctx, mouseCell) {
 
-      ctx.fillStyle = "dimgray";
-      ctx.fillRect(
-         position.x,
-         position.y,
-         this.size,
-         this.size
+      ctx.strokeStyle = "darkviolet";
+      ctx.beginPath();
+
+      ctx.moveTo(
+         this.center.x,
+         this.center.y
       );
+
+      ctx.lineTo(
+         mouseCell.centerX,
+         mouseCell.centerY
+      );
+
+      ctx.lineWidth = 4;
+      ctx.stroke();
    }
 
    drawStartEnd(ctx, color) {

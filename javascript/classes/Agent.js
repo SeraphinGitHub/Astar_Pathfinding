@@ -5,7 +5,7 @@
 // Agent Class
 // =====================================================================
 class Agent {
-   constructor(startCell, endCell, isEuclidean ) {
+   constructor(startCell, endCell, isEuclidean) {
 
       this.startCell = startCell;
       this.endCell = endCell;
@@ -99,9 +99,9 @@ class Agent {
       if( !(topNeb    && leftNeb  && topNeb.isBlocked    && leftNeb.isBlocked  && neighbor === topLeftNeb
          || topNeb    && rightNeb && topNeb.isBlocked    && rightNeb.isBlocked && neighbor === topRightNeb
          || bottomNeb && leftNeb  && bottomNeb.isBlocked && leftNeb.isBlocked  && neighbor === bottomLeftNeb
-         || bottomNeb && rightNeb && bottomNeb.isBlocked && rightNeb.isBlocked && neighbor === bottomRightNeb
-         || this.isEuclidean
-      )) {
+         || bottomNeb && rightNeb && bottomNeb.isBlocked && rightNeb.isBlocked && neighbor === bottomRightNeb )
+      && this.isEuclidean
+      || !this.isEuclidean) {
          this.openList.push(neighbor);
       }
    }
