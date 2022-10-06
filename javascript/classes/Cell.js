@@ -35,12 +35,10 @@ class Cell {
    }
 
    // Collision
-   line_toSquare(line, isDiamond) {
+   cellCollider(isDiamond) {
 
-      let rectCorner;
-
-      // Rect is a Diamond
-      if(isDiamond) rectCorner = {
+      // Collider is a Diamond
+      if(isDiamond) return {
 
          top: {
             x: this.center.x,
@@ -63,8 +61,8 @@ class Cell {
          },
       }
 
-      // Rect is a Square
-      else rectCorner = {
+      // Collider is a Square
+      else return {
 
          top: {
             x: this.x,
@@ -86,6 +84,40 @@ class Cell {
             y: this.y +this.size,
          },
       };
+   }
+
+   line_toLine(lineA, lineB) {
+
+      const vectorA = {
+         x: lineA.endX -lineA.startX,
+         y: lineA.endY -lineA.startY,
+      }
+   
+      const vectorB = {
+         x: lineB.endX -lineB.startX,
+         y: lineB.endY -lineB.startY,
+      }
+   
+      const vectorC = {
+         x: lineA.startX -lineB.startX,
+         y: lineA.startY -lineB.startY,
+      }  
+   
+      let vectorValueA = vectorA.x *vectorC.y - vectorA.y *vectorC.x;
+      let vectorValueB = vectorB.x *vectorC.y - vectorB.y *vectorC.x;
+      let denominator = vectorB.y *vectorA.x - vectorB.x *vectorA.y;
+      
+      let rangeA = Math.floor(vectorValueA /denominator *1000) /1000;
+      let rangeB = Math.floor(vectorValueB /denominator *1000) /1000;
+      
+      if(rangeA >= 0 && rangeA <= 1
+      && rangeB >= 0 && rangeB <= 1) return true;
+      else return false;
+   }
+
+   line_toSquare(line, isDiamond) {
+
+      let rectCorner = this.cellCollider(isDiamond);     
       
       const rectSide = {
 
@@ -122,8 +154,7 @@ class Cell {
       let rightSide  = this.line_toLine(line, rectSide.right );
       let bottomSide = this.line_toLine(line, rectSide.bottom);
       let leftSide   = this.line_toLine(line, rectSide.left  );
-   
-      
+         
       if(leftSide
       || rightSide
       || topSide
@@ -131,35 +162,6 @@ class Cell {
       else return false;
    }
    
-   line_toLine(lineA, lineB) {
-
-      const vectorA = {
-         x: lineA.endX -lineA.startX,
-         y: lineA.endY -lineA.startY,
-      }
-   
-      const vectorB = {
-         x: lineB.endX -lineB.startX,
-         y: lineB.endY -lineB.startY,
-      }
-   
-      const vectorC = {
-         x: lineA.startX -lineB.startX,
-         y: lineA.startY -lineB.startY,
-      }  
-   
-      let vectorValueA = vectorA.x *vectorC.y - vectorA.y *vectorC.x;
-      let vectorValueB = vectorB.x *vectorC.y - vectorB.y *vectorC.x;
-      let denominator = vectorB.y *vectorA.x - vectorB.x *vectorA.y;
-      
-      let rangeA = Math.floor(vectorValueA /denominator *1000) /1000;
-      let rangeB = Math.floor(vectorValueB /denominator *1000) /1000;
-      
-      if(rangeA >= 0 && rangeA <= 1
-      && rangeB >= 0 && rangeB <= 1) return true;
-      else return false;
-   }
-
 
    // NeighborsList
    initNeighborsList(cellsList) {
@@ -319,41 +321,21 @@ class Cell {
 
    }
 
-   drawWallCollider(ctx) {
+   drawWallCollider(ctx, isDiamond, showWallCol) {
 
+      if(showWallCol) {
+         let rectCorner = this.cellCollider(isDiamond);     
 
-      const point = {
-
-         top: {
-            x: this.center.x,
-            y: this.y,
-         },
-
-         right: {
-            x: this.x +this.size,
-            y: this.center.y,
-         },
-
-         bottom: {
-            x: this.center.x,
-            y: this.y +this.size,
-         },
-
-         left: {
-            x: this.x,
-            y: this.center.y,
-         },
+         ctx.fillStyle = "red";
+         ctx.beginPath();
+   
+         ctx.moveTo(rectCorner.top.x, rectCorner.top.y);
+         ctx.lineTo(rectCorner.right.x, rectCorner.right.y);
+         ctx.lineTo(rectCorner.bottom.x, rectCorner.bottom.y);
+         ctx.lineTo(rectCorner.left.x, rectCorner.left.y);
+   
+         ctx.fill();
       }
-
-      ctx.fillStyle = "red";
-      ctx.beginPath();
-
-      ctx.moveTo(point.top.x, point.top.y);
-      ctx.lineTo(point.right.x, point.right.y);
-      ctx.lineTo(point.bottom.x, point.bottom.y);
-      ctx.lineTo(point.left.x, point.left.y);
-
-      ctx.fill();
    }
 
    drawPathWall(ctx, mouseCell) {

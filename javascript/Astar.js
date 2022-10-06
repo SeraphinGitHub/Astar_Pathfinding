@@ -13,6 +13,10 @@ const DOM = {
 // let isEuclidean = false;
 let isEuclidean = true;
 
+let showWallCol = false;
+// let showWallCol = true;
+
+
 const gridHeight = 800;
 const gridWidth = 1200;
 const cellSize = 80;
@@ -32,7 +36,7 @@ let endCell_Color = "red";
 let cellPos;
 let agent;
 let startWall;
-let drawingWalls = false;
+let isDrawingWalls = false;
 let tempWallsIDArray = [];
 
 
@@ -96,61 +100,6 @@ const drawCellInfo = (cell) => {
    cell.drawID(ctx);
 }
 
-const drawEraseWall = (cell) => {
-
-   if(!drawingWalls && !cell.isBlocked) {
-
-      drawingWalls = true;
-      startWall = cell;
-      cell.isBlocked = true;
-      cell.drawWall(ctx, false);
-   }
-   
-   else {
-      drawingWalls = false;
-      cell.isBlocked = false;
-      clearClickedCell(cellPos);
-   }
-
-   drawCellInfo(cell);
-}
-
-const drawTempWalls = (cell) => {
-
-   let isDiamond = true;
-
-   const raycast = {
-
-      startX: startWall.center.x,
-      startY: startWall.center.y,
-      endX: cellPos.centerX,
-      endY: cellPos.centerY,
-   }
-
-   // If raycast collide cell ==> Draw tempory wall
-   if(cell.line_toSquare(raycast, isDiamond)
-   && cell !== startWall) {
-      
-      tempWallsIDArray.push(cell.id);
-      cell.drawWall(ctx, true);
-      cell.drawWallCollider(ctx, true);
-   }
-}
-
-const drawBuiltWalls = (cell) => {
-
-   tempWallsIDArray.forEach(id => {
-      let tempCell = grid.cellsList[id];
-
-      tempCell.isBlocked = true;
-      tempCell.drawWall(ctx, false);
-      drawCellInfo(tempCell);
-      startWall.drawPathWall(ctx, cellPos);
-
-      startWall = cell;
-   });
-}
-
 const startEndPos = (cell) => {
 
    // Draw StartPos
@@ -174,6 +123,64 @@ const startEndPos = (cell) => {
    }
 }
 
+const drawEraseWall = (cell) => {
+
+   if(!isDrawingWalls && !cell.isBlocked) {
+
+      isDrawingWalls = true;
+      cell.isBlocked = true;
+      cell.drawWall(ctx, false);
+      startWall = cell;
+   }
+   
+   else {
+      isDrawingWalls = false;
+      cell.isBlocked = false;
+      clearClickedCell(cellPos);
+   }
+
+   drawCellInfo(cell);
+}
+
+// Mouse Hover
+const drawTempWalls = (cell) => {
+
+   let isDiamond = true;
+
+   const raycast = {
+
+      startX: startWall.center.x,
+      startY: startWall.center.y,
+      endX: cellPos.centerX,
+      endY: cellPos.centerY,
+   }
+
+   // If raycast collide cell ==> Draw tempory wall
+   if(cell.line_toSquare(raycast, isDiamond)
+   && !cell.isBlocked
+   && cell !== startWall) {
+      
+      tempWallsIDArray.push(cell.id);
+      cell.drawWall(ctx, true);
+      cell.drawWallCollider(ctx, isDiamond, showWallCol);
+   }
+}
+
+// Mouse Click
+const drawBuiltWalls = (cell) => {
+
+   tempWallsIDArray.forEach(id => {
+      let tempCell = grid.cellsList[id];
+
+      tempCell.isBlocked = true;
+      tempCell.drawWall(ctx, false);
+      drawCellInfo(tempCell);
+   });
+
+   startWall.drawPathWall(ctx, cellPos);
+   startWall = cell;
+}
+
 
 // ================================================================================================
 // Game Handler
@@ -195,15 +202,14 @@ const Game_Handler = () => {
       if(agent) agent.displayPath(ctx);
 
       cycleCells((cell) => {
-
          if(cell.isBlocked) cell.drawWall(ctx, false);
-         if(drawingWalls) drawTempWalls(cell);
+         if(isDrawingWalls) drawTempWalls(cell);
 
          drawCellInfo(cell);
          cell.drawHover(ctx, cellPos, "blue");
       });
 
-      if(drawingWalls) startWall.drawPathWall(ctx, cellPos);
+      if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
    });
    
 
@@ -219,7 +225,7 @@ const Game_Handler = () => {
             // Left click
             if(event.which === 1) {
 
-               if(drawingWalls) drawBuiltWalls(cell);
+               if(isDrawingWalls) drawBuiltWalls(cell);
                else startEndPos(cell);
             }
             
