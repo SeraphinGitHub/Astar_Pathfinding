@@ -30,6 +30,122 @@ class Cell {
       this.isBlocked = false;
    }
 
+   // Collision
+   line_toSquare(line, rect) {
+
+      const rectCorner = {
+
+         topLeft: {
+            x: rect.x,
+            y: rect.y,
+         },
+
+         topRight: {
+            x: rect.x +rect.width,
+            y: rect.y,
+         },
+
+         bottomLeft: {
+            x: rect.x,
+            y: rect.y +rect.height,
+         },
+
+         bottomRight: {
+            x: rect.x +rect.width,
+            y: rect.y +rect.height,
+         },
+      };
+
+      const rectSide = {
+
+         left: {
+            startX: rectCorner.bottomLeft.x,
+            startY: rectCorner.bottomLeft.y,
+            endX: rectCorner.topLeft.x,
+            endY: rectCorner.topLeft.y,
+         },
+
+         right: {
+            startX: rectCorner.topRight.x,
+            startY: rectCorner.topRight.y,
+            endX: rectCorner.bottomRight.x,
+            endY: rectCorner.bottomRight.y,
+         },
+
+         top: {
+            startX: rectCorner.topLeft.x,
+            startY: rectCorner.topLeft.y,
+            endX: rectCorner.topRight.x,
+            endY: rectCorner.topRight.y,
+         },
+
+         bottom: {
+            startX: rectCorner.bottomRight.x,
+            startY: rectCorner.bottomRight.y,
+            endX: rectCorner.bottomLeft.x,
+            endY: rectCorner.bottomLeft.y,
+         },
+      };
+
+      console.log("******************************************************");
+
+
+      let topSide    = this.line_toLine(line, rectSide.top   );
+      let rightSide  = this.line_toLine(line, rectSide.right );
+      let bottomSide = this.line_toLine(line, rectSide.bottom);
+      let leftSide   = this.line_toLine(line, rectSide.left  );
+
+      let total = 0;
+      
+      if(topSide[1]) total += topSide[1];
+      if(rightSide[1]) total += rightSide[1];
+      if(bottomSide[1]) total += bottomSide[1];
+      if(leftSide[1]) total += leftSide[1];
+
+      console.log(total); // ******************************************************
+
+
+      if(leftSide[1]
+      || rightSide[1]
+      || topSide[1]
+      || bottomSide[1]) return true;
+      else return false;
+   }
+   
+   line_toLine(lineA, lineB) {
+
+      const vectorA = {
+         x: lineA.endX -lineA.startX,
+         y: lineA.endY -lineA.startY,
+      }
+   
+      const vectorB = {
+         x: lineB.endX -lineB.startX,
+         y: lineB.endY -lineB.startY,
+      }
+   
+      const vectorC = {
+         x: lineA.startX -lineB.startX,
+         y: lineA.startY -lineB.startY,
+      }  
+   
+      let vectorValueA = vectorA.x *vectorC.y - vectorA.y *vectorC.x;
+      let vectorValueB = vectorB.x *vectorC.y - vectorB.y *vectorC.x;
+      let denominator = vectorB.y *vectorA.x - vectorB.x *vectorA.y;
+      
+      let rangeA = Math.floor(vectorValueA /denominator *1000) /1000;
+      let rangeB = Math.floor(vectorValueB /denominator *1000) /1000;
+      
+      if(rangeA >= 0 && rangeA <= 1
+      && rangeB >= 0 && rangeB <= 1) {
+
+         return [rangeA, true];
+      }
+      else return false;
+   }
+
+
+   // NeighborsList
    initNeighborsList(cellsList) {
 
       const nebID = {
@@ -171,11 +287,11 @@ class Cell {
       );      
    }
 
-   drawWall(ctx, position, isBuilt) {
+   drawWall(ctx, position, isTempory) {
 
       let wallColor;
-      if(isBuilt) wallColor = "dimgray";
-      else wallColor = "rgba(105, 105, 105, 0.4)";
+      if(isTempory) wallColor = "rgba(105, 105, 105, 0.4)";
+      else wallColor = "dimgray";
       
       ctx.fillStyle = wallColor;
       ctx.fillRect(

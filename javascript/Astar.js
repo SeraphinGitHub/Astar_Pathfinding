@@ -13,17 +13,6 @@ const DOM = {
 // let isEuclidean = false;
 let isEuclidean = true;
 
-let cellPos;
-let agent;
-
-let startCell;
-let endCell;
-
-let startWall;
-
-let startCell_Color = "yellow";
-let endCell_Color = "red";
-
 const gridHeight = 800;
 const gridWidth = 1200;
 const cellSize = 80;
@@ -34,6 +23,17 @@ const grid = new Grid(gridWidth, gridHeight, cellSize);
 
 canvas.width = grid.width;
 canvas.height = grid.height;
+
+let startCell;
+let endCell;
+let startCell_Color = "yellow";
+let endCell_Color = "red";
+
+let cellPos;
+let agent;
+let startWall;
+let drawingWalls = false;
+let tempWallsIDArray = [];
 
 
 const clearCanvas = () => {
@@ -96,17 +96,108 @@ const drawCellInfo = (cell) => {
    cell.drawID(ctx);
 }
 
-const gameHandler = () => {
+const drawEraseWall = (cell) =>{
 
-   // ================================================
+   if(!drawingWalls && !cell.isBlocked) {
+
+      drawingWalls = true;
+      startWall = cell;
+      cell.isBlocked = true;
+      cell.drawWall(ctx, cellPos, false);
+   }
+   
+   else {
+      drawingWalls = false;
+      cell.isBlocked = false;
+      clearClickedCell(cellPos);
+   }
+
+   drawCellInfo(cell);
+}
+
+const drawTempWalls = (cell) => {
+
+   const raycast = {
+      startX: startWall.center.x,
+      startY: startWall.center.y,
+      endX: cellPos.centerX,
+      endY: cellPos.centerY,
+   }
+
+   const hoveredCell = {
+      x: cell.i *cell.size,
+      y: cell.j *cell.size,
+      width: cell.size,
+      height: cell.size,
+   }
+
+   // If raycast collide cell ==> Draw tempory wall
+   if(cell.line_toSquare(raycast, hoveredCell)
+   && cell !== startWall) {
+
+      tempWallsIDArray.push(cell.id);
+      cell.drawWall(ctx, hoveredCell, true);
+   }
+}
+
+const drawBuiltWalls = (cell) => {
+
+   tempWallsIDArray.forEach(id => {
+      let tempCell = grid.cellsList[id];
+
+      const wall = {
+         x: tempCell.i *tempCell.size,
+         y: tempCell.j *tempCell.size,
+      }
+
+      tempCell.isBlocked = true;
+      tempCell.drawWall(ctx, wall, false);
+      drawCellInfo(tempCell);
+      startWall.drawPathWall(ctx, cellPos);
+
+      startWall = cell;
+   });
+}
+
+const startEndPos = (cell) => {
+
+   // Draw StartPos
+   if(!startCell) {
+      startCell = cell;
+      cell.drawStartEnd(ctx, startCell_Color);
+      drawCellInfo(cell);
+   }
+   
+   // Draw EndPos
+   else if(!endCell) {
+      endCell = cell;
+      cell.drawStartEnd(ctx, endCell_Color);
+      drawCellInfo(cell);
+   }
+   
+   // Erase StartPos && EndPos
+   else {
+      if(endCell && cellPos.id === endCell.id) endCell = undefined;
+      if(startCell && cellPos.id === startCell.id) startCell = undefined;
+   }
+}
+
+
+// ================================================================================================
+// Game Handler
+// ================================================================================================
+const Game_Handler = () => {
+
+   // ===================================
    // Mouse Hover
-   // ================================================
+   // ===================================
    canvas.addEventListener("mousemove", (event) => {
       
       cellPos = getCellPosition(event);
       setDOM(cellPos);      
       clearCanvas();
-      
+      tempWallsIDArray = [];
+
       if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
       if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
       if(agent) agent.displayPath(ctx);
@@ -118,7 +209,8 @@ const gameHandler = () => {
             y: cell.j *cell.size,
          }
 
-         if(cell.isBlocked) cell.drawWall(ctx, wall, true);
+         if(cell.isBlocked) cell.drawWall(ctx, wall, false);
+         if(drawingWalls) drawTempWalls(cell);
 
          drawCellInfo(cell);
          cell.drawHover(ctx, cellPos, "blue");
@@ -127,55 +219,28 @@ const gameHandler = () => {
       if(drawingWalls) startWall.drawPathWall(ctx, cellPos);
    });
    
-   
-   // ================================================
+
+   // ===================================
    // Mouse Click
-   // ================================================
+   // ===================================
    canvas.addEventListener("mousedown", (event) => {
 
       cycleCells((cell) => {
+
          if(cell.id === cellPos.id) {
 
             // Left click
             if(event.which === 1) {
 
-               // Draw StartPos
-               if(!startCell) {
-                  startCell = cell;
-                  cell.drawStartEnd(ctx, startCell_Color);
-                  drawCellInfo(cell);
-               }
-               
-               // Draw EndPos
-               else if(!endCell) {
-                  endCell = cell;
-                  cell.drawStartEnd(ctx, endCell_Color);
-                  drawCellInfo(cell);
-               }
-               
-               // Erase StartPos && EndPos
-               else {
-                  if(endCell && cellPos.id === endCell.id) endCell = undefined;
-                  if(startCell && cellPos.id === startCell.id) startCell = undefined;
-               }
+               if(drawingWalls) drawBuiltWalls(cell);
+               else startEndPos(cell);
             }
             
             
             // Right click
             if(event.which === 3) {
-   
-               if(!cell.isBlocked) {
-                  startWall = cell;
-                  cell.isBlocked = true;
-                  cell.drawWall(ctx, cellPos, true);
-               }
-               
-               else {
-                  cell.isBlocked = false;
-                  clearClickedCell(cellPos);
-               }
 
-               drawCellInfo(cell);
+               drawEraseWall(cell);
             }
          }
       });
@@ -186,12 +251,17 @@ const gameHandler = () => {
    window.addEventListener("keydown", (event) => {
       
       if(event.key === "Enter") {
-         agent = new Agent(startCell, endCell, isEuclidean);
 
-         agent.searchPath();
-         agent.showPath = true;
-         // agent.showData = true;
-         agent.displayPath(ctx);
+         if(startCell && endCell) {
+            agent = new Agent(startCell, endCell, isEuclidean);
+   
+            agent.searchPath();
+            agent.showPath = true;
+            // agent.showData = true;
+            agent.displayPath(ctx);
+         }
+
+         else console.log("No path to calculate !"); // ******************************************************
       }
 
       if(event.key === "Escape") {
@@ -207,7 +277,7 @@ document.body.oncontextmenu = (event) => {
 
 window.addEventListener("load", () => {
    
-   gameHandler();  
+   Game_Handler();  
    grid.init(isEuclidean);
    cycleCells((cell) => drawCellInfo(cell));
 });
