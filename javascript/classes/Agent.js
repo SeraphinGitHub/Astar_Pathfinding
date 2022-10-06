@@ -5,16 +5,17 @@
 // Agent Class
 // =====================================================================
 class Agent {
-   constructor(startCell, endCell, isEuclidean) {
+   constructor(startCell, endCell, isEuclidean, showPath, showData) {
 
       this.startCell = startCell;
       this.endCell = endCell;
       this.openList = [startCell];
       this.closedList = [];
       this.pathArray = [];
-      
-      this.showPath = false;
-      this.showData = false;
+
+      this.isSearching = false;
+      this.showPath = showPath;
+      this.showData = showData;
       this.isEuclidean = isEuclidean; // Can move diagonally if "true"
    }
 
@@ -29,6 +30,8 @@ class Agent {
    }
 
    searchPath() {
+      this.isSearching = true;
+      
       while(this.openList.length > 0) {
 
          let lowestIndex = 0;
@@ -73,6 +76,8 @@ class Agent {
             }
 
             this.pathArray.reverse();
+            if(!this.showPath) this.isSearching = false;
+
             return this.pathArray;
          }
 
@@ -121,7 +126,7 @@ class Agent {
          for(let i = 0; i < this.pathArray.length; i++) {
    
             let currentCell = this.pathArray[i];
-            this.drawHitbox(ctx, i, currentCell);
+            if(this.isSearching) this.drawHitbox(ctx, i, currentCell);
             
             if(i +1 < this.pathArray.length) {
                let nextCell = this.pathArray[i +1];
@@ -153,9 +158,9 @@ class Agent {
    drawHitbox(ctx, i, currentCell) {
       
       let ratio = 0.7; // 70%
-
+      
       setTimeout(() => {
-
+         
          ctx.fillStyle = "blue";
          ctx.fillRect(
             currentCell.center.x -currentCell.size /2 *ratio,
@@ -164,9 +169,9 @@ class Agent {
             currentCell.size *ratio
          );
 
-         if(this.showData)currentCell.drawData(ctx);
+         if(this.showData)currentCell.drawData(ctx);         
+         if(this.pathArray.length -1 === i) this.isSearching = false;
 
       }, 100 *i);
-
    }
 }
