@@ -193,27 +193,24 @@ const Game_Handler = () => {
    // ===================================
    canvas.addEventListener("mousemove", (event) => {
 
-      if(!agent || !agent.isSearching) {
+      cellPos = getCellPosition(event);
+      setDOM(cellPos);      
+      clearCanvas();
+      tempWallsIDArray = [];
 
-         cellPos = getCellPosition(event);
-         setDOM(cellPos);      
-         clearCanvas();
-         tempWallsIDArray = [];
-   
-         if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
-         if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
-         if(agent) agent.displayPath(ctx);
-   
-         cycleCells((cell) => {
-            if(cell.isBlocked) cell.drawWall(ctx, false);
-            if(isDrawingWalls) drawTempWalls(cell);
-   
-            drawCellInfo(cell);
-            cell.drawHover(ctx, cellPos, "blue");
-         });
-   
-         if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
-      }
+      if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
+      if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
+      if(agent) agent.displayPath(ctx);
+
+      cycleCells((cell) => {
+         if(cell.isBlocked) cell.drawWall(ctx, false);
+         if(isDrawingWalls) drawTempWalls(cell);
+
+         drawCellInfo(cell);
+         cell.drawHover(ctx, cellPos, "blue");
+      });
+
+      if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
    });
    
 
@@ -222,27 +219,25 @@ const Game_Handler = () => {
    // ===================================
    canvas.addEventListener("mousedown", (event) => {
       
-      if(!agent || !agent.isSearching) {
-         cycleCells((cell) => {
+      cycleCells((cell) => {
 
-            if(cell.id === cellPos.id) {
+         if(cell.id === cellPos.id) {
 
-               // Left click
-               if(event.which === 1) {
+            // Left click
+            if(event.which === 1) {
 
-                  if(isDrawingWalls) drawBuiltWalls(cell);
-                  else startEndPos(cell);
-               }
-               
-               
-               // Right click
-               if(event.which === 3) {
-
-                  drawEraseWall(cell);
-               }
+               if(isDrawingWalls) drawBuiltWalls(cell);
+               else startEndPos(cell);
             }
-         });
-      }
+            
+            
+            // Right click
+            if(event.which === 3) {
+
+               drawEraseWall(cell);
+            }
+         }
+      });
    });
 
 
@@ -250,25 +245,13 @@ const Game_Handler = () => {
    window.addEventListener("keydown", (event) => {
       
       if(event.key === "Enter") {
-         
-         if(startCell && endCell) {
-
-            clearCanvas();
-
-            startCell.drawStartEnd(ctx, startCell_Color);
-            endCell.drawStartEnd(ctx, endCell_Color);
       
-            cycleCells((cell) => {
-               if(cell.isBlocked) cell.drawWall(ctx, false);
-               drawCellInfo(cell);
-            });
-
-            let showPath = true;
-            let showData = false;
-
-            agent = new Agent(startCell, endCell, isEuclidean, showPath, showData);
+         if(startCell && endCell) {
+            agent = new Agent(startCell, endCell, isEuclidean);
    
             agent.searchPath();
+            agent.showPath = true;
+            // agent.showData = true;
             agent.displayPath(ctx);
          }
 
