@@ -70,13 +70,13 @@ const getCellPosition = (event) => {
    let cellID = `${cellPos.x /grid.cellSize}-${cellPos.y /grid.cellSize}`;
 
    return {
-      mouseX: mousePos.x,
-      mouseY: mousePos.y,
-      centerX: cellPos.x +grid.cellSize /2,
-      centerY: cellPos.y +grid.cellSize /2,
+      id: cellID,
       x: cellPos.x,
       y: cellPos.y,
-      id: cellID,
+      centerX: cellPos.x +grid.cellSize /2,
+      centerY: cellPos.y +grid.cellSize /2,
+      mouseX: mousePos.x,
+      mouseY: mousePos.y,
    }
 }
 
@@ -96,14 +96,14 @@ const drawCellInfo = (cell) => {
    cell.drawID(ctx);
 }
 
-const drawEraseWall = (cell) =>{
+const drawEraseWall = (cell) => {
 
    if(!drawingWalls && !cell.isBlocked) {
 
       drawingWalls = true;
       startWall = cell;
       cell.isBlocked = true;
-      cell.drawWall(ctx, cellPos, false);
+      cell.drawWall(ctx, false);
    }
    
    else {
@@ -117,26 +117,23 @@ const drawEraseWall = (cell) =>{
 
 const drawTempWalls = (cell) => {
 
+   let isDiamond = true;
+
    const raycast = {
+
       startX: startWall.center.x,
       startY: startWall.center.y,
       endX: cellPos.centerX,
       endY: cellPos.centerY,
    }
 
-   const hoveredCell = {
-      x: cell.i *cell.size,
-      y: cell.j *cell.size,
-      width: cell.size,
-      height: cell.size,
-   }
-
    // If raycast collide cell ==> Draw tempory wall
-   if(cell.line_toSquare(raycast, hoveredCell)
+   if(cell.line_toSquare(raycast, isDiamond)
    && cell !== startWall) {
-
+      
       tempWallsIDArray.push(cell.id);
-      cell.drawWall(ctx, hoveredCell, true);
+      cell.drawWall(ctx, true);
+      cell.drawWallCollider(ctx, true);
    }
 }
 
@@ -145,13 +142,8 @@ const drawBuiltWalls = (cell) => {
    tempWallsIDArray.forEach(id => {
       let tempCell = grid.cellsList[id];
 
-      const wall = {
-         x: tempCell.i *tempCell.size,
-         y: tempCell.j *tempCell.size,
-      }
-
       tempCell.isBlocked = true;
-      tempCell.drawWall(ctx, wall, false);
+      tempCell.drawWall(ctx, false);
       drawCellInfo(tempCell);
       startWall.drawPathWall(ctx, cellPos);
 
@@ -203,13 +195,8 @@ const Game_Handler = () => {
       if(agent) agent.displayPath(ctx);
 
       cycleCells((cell) => {
-         
-         const wall = {
-            x: cell.i *cell.size,
-            y: cell.j *cell.size,
-         }
 
-         if(cell.isBlocked) cell.drawWall(ctx, wall, false);
+         if(cell.isBlocked) cell.drawWall(ctx, false);
          if(drawingWalls) drawTempWalls(cell);
 
          drawCellInfo(cell);

@@ -8,16 +8,20 @@ class Cell {
    constructor(collums, rows, size, isEuclidean, i, j) {
       
       this.id =`${i}-${j}`;
+
       this.collums = collums;
       this.rows = rows;
       this.size = size;
       this.isEuclidean = isEuclidean;
+
       this.i = i;
       this.j = j;
+      this.x = i *size;
+      this.y = j *size;
       
       this.center = {
-         x: i *size + size/2,
-         y: j *size + size/2,
+         x: this.x + size/2,
+         y: this.y + size/2,
       };
 
       this.neighborsList = {};
@@ -31,84 +35,99 @@ class Cell {
    }
 
    // Collision
-   line_toSquare(line, rect) {
+   line_toSquare(line, isDiamond) {
 
-      const rectCorner = {
+      let rectCorner;
 
-         topLeft: {
-            x: rect.x,
-            y: rect.y,
-         },
+      // Rect is a Diamond
+      if(isDiamond) rectCorner = {
 
-         topRight: {
-            x: rect.x +rect.width,
-            y: rect.y,
-         },
-
-         bottomLeft: {
-            x: rect.x,
-            y: rect.y +rect.height,
-         },
-
-         bottomRight: {
-            x: rect.x +rect.width,
-            y: rect.y +rect.height,
-         },
-      };
-
-      const rectSide = {
-
-         left: {
-            startX: rectCorner.bottomLeft.x,
-            startY: rectCorner.bottomLeft.y,
-            endX: rectCorner.topLeft.x,
-            endY: rectCorner.topLeft.y,
+         top: {
+            x: this.center.x,
+            y: this.y,
          },
 
          right: {
-            startX: rectCorner.topRight.x,
-            startY: rectCorner.topRight.y,
-            endX: rectCorner.bottomRight.x,
-            endY: rectCorner.bottomRight.y,
-         },
-
-         top: {
-            startX: rectCorner.topLeft.x,
-            startY: rectCorner.topLeft.y,
-            endX: rectCorner.topRight.x,
-            endY: rectCorner.topRight.y,
+            x: this.x +this.size,
+            y: this.center.y,
          },
 
          bottom: {
-            startX: rectCorner.bottomRight.x,
-            startY: rectCorner.bottomRight.y,
-            endX: rectCorner.bottomLeft.x,
-            endY: rectCorner.bottomLeft.y,
+            x: this.center.x,
+            y: this.y +this.size,
+         },
+
+         left: {
+            x: this.x,
+            y: this.center.y,
+         },
+      }
+
+      // Rect is a Square
+      else rectCorner = {
+
+         top: {
+            x: this.x,
+            y: this.y,
+         },
+
+         right: {
+            x: this.x +this.size,
+            y: this.y,
+         },
+
+         bottom: {
+            x: this.x,
+            y: this.y +this.size,
+         },
+
+         left: {
+            x: this.x +this.size,
+            y: this.y +this.size,
          },
       };
+      
+      const rectSide = {
 
-      console.log("******************************************************");
+         left: {
+            startX: rectCorner.bottom.x,
+            startY: rectCorner.bottom.y,
+            endX: rectCorner.top.x,
+            endY: rectCorner.top.y,
+         },
 
+         right: {
+            startX: rectCorner.right.x,
+            startY: rectCorner.right.y,
+            endX: rectCorner.bottom.x,
+            endY: rectCorner.bottom.y,
+         },
+
+         top: {
+            startX: rectCorner.top.x,
+            startY: rectCorner.top.y,
+            endX: rectCorner.right.x,
+            endY: rectCorner.right.y,
+         },
+
+         bottom: {
+            startX: rectCorner.bottom.x,
+            startY: rectCorner.bottom.y,
+            endX: rectCorner.left.x,
+            endY: rectCorner.left.y,
+         },
+      };
 
       let topSide    = this.line_toLine(line, rectSide.top   );
       let rightSide  = this.line_toLine(line, rectSide.right );
       let bottomSide = this.line_toLine(line, rectSide.bottom);
       let leftSide   = this.line_toLine(line, rectSide.left  );
-
-      let total = 0;
+   
       
-      if(topSide[1]) total += topSide[1];
-      if(rightSide[1]) total += rightSide[1];
-      if(bottomSide[1]) total += bottomSide[1];
-      if(leftSide[1]) total += leftSide[1];
-
-      console.log(total); // ******************************************************
-
-
-      if(leftSide[1]
-      || rightSide[1]
-      || topSide[1]
-      || bottomSide[1]) return true;
+      if(leftSide
+      || rightSide
+      || topSide
+      || bottomSide) return true;
       else return false;
    }
    
@@ -137,10 +156,7 @@ class Cell {
       let rangeB = Math.floor(vectorValueB /denominator *1000) /1000;
       
       if(rangeA >= 0 && rangeA <= 1
-      && rangeB >= 0 && rangeB <= 1) {
-
-         return [rangeA, true];
-      }
+      && rangeB >= 0 && rangeB <= 1) return true;
       else return false;
    }
 
@@ -224,8 +240,8 @@ class Cell {
       ctx.lineWidth = 2;
    
       ctx.strokeRect(
-         this.i *this.size,
-         this.j *this.size,
+         this.x,
+         this.y,
          this.size,
          this.size
       );
@@ -287,24 +303,62 @@ class Cell {
       );      
    }
 
-   drawWall(ctx, position, isTempory) {
+   drawWall(ctx, isTempory) {
 
       let wallColor;
-      if(isTempory) wallColor = "rgba(105, 105, 105, 0.4)";
+      if(isTempory) wallColor = "rgba(105, 105, 105, 0.45)";
       else wallColor = "dimgray";
       
       ctx.fillStyle = wallColor;
       ctx.fillRect(
-         position.x,
-         position.y,
+         this.x,
+         this.y,
          this.size,
          this.size
       );
+
+   }
+
+   drawWallCollider(ctx) {
+
+
+      const point = {
+
+         top: {
+            x: this.center.x,
+            y: this.y,
+         },
+
+         right: {
+            x: this.x +this.size,
+            y: this.center.y,
+         },
+
+         bottom: {
+            x: this.center.x,
+            y: this.y +this.size,
+         },
+
+         left: {
+            x: this.x,
+            y: this.center.y,
+         },
+      }
+
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+
+      ctx.moveTo(point.top.x, point.top.y);
+      ctx.lineTo(point.right.x, point.right.y);
+      ctx.lineTo(point.bottom.x, point.bottom.y);
+      ctx.lineTo(point.left.x, point.left.y);
+
+      ctx.fill();
    }
 
    drawPathWall(ctx, mouseCell) {
 
-      ctx.strokeStyle = "darkviolet";
+      ctx.strokeStyle = "yellow";
       ctx.beginPath();
 
       ctx.moveTo(
@@ -325,8 +379,8 @@ class Cell {
 
       ctx.fillStyle = color;
       ctx.fillRect(
-         this.i *this.size,
-         this.j *this.size,
+         this.x,
+         this.y,
          this.size,
          this.size
       );
