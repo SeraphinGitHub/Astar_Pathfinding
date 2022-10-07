@@ -27,19 +27,17 @@ canvas {
 }
 
 .coordinates {
-   position: absolute;
-   top: 100px;
-   left: 35px;
+   justify-content: space-around;
    height: auto;
-   width: 260px;
-   padding-left: 20px;
+   width: 60%;
    background: white;
+   margin-bottom: 15px;
 }
 
 .coordinates p {
    position: relative;
    justify-content: flex-start;
-   height: 30px;
+   height: 20px;
    width: 100%;
 }
 
@@ -47,6 +45,6 @@ canvas {
 .cell-coord,
 .cell-id {
    position: relative;
-   width: 100%;
-   margin-bottom: 15px;
+   width: 30%;
+   margin: 10px;
 }

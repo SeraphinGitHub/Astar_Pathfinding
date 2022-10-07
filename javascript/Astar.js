@@ -10,16 +10,30 @@ const DOM = {
    cellID: document.querySelector(".coordinates .ID-cell"),
 }
 
-// let isEuclidean = false;
-let isEuclidean = true;
+const DebugVar = {
+   
+   isEuclidean: true,
+   // isEuclidean: false,
 
-let showWallCol = false;
-// let showWallCol = true;
+   // showWallCol: true,
+   showWallCol: false,
+
+   // showCellInfo: true,
+   showCellInfo: false,
+};
+
+const tile_Img = {
+   
+   // src: "images/tiles/GroundTiles.png",
+   src: "images/tiles/TestTiles.png",
+   width: 200,
+   height: 200,
+};
 
 
 const gridHeight = 800;
-const gridWidth = 1200;
-const cellSize = 80;
+const gridWidth = 1400;
+const cellSize = 50;
 
 const canvas = document.querySelector(".canvas-1");
 const ctx = canvas.getContext("2d");
@@ -94,13 +108,6 @@ const cycleCells = (callback) => {
    }
 }
 
-const drawCellInfo = (cell) => {
-
-   cell.drawFrame(ctx);
-   cell.drawCenter(ctx);
-   cell.drawID(ctx);
-}
-
 const startEndPos = (cell) => {
 
    // Draw StartPos
@@ -143,6 +150,17 @@ const drawEraseWall = (cell) => {
    drawCellInfo(cell);
 }
 
+
+// Cell Infos
+const drawCellInfo = (cell) => {
+
+   if(DebugVar.showCellInfo) {
+      cell.drawFrame(ctx);
+      cell.drawCenter(ctx);
+      cell.drawID(ctx);
+   }
+}
+
 // Mouse Hover
 const drawTempWalls = (cell) => {
 
@@ -163,7 +181,7 @@ const drawTempWalls = (cell) => {
       
       tempWallsIDArray.push(cell.id);
       cell.drawWall(ctx, true);
-      cell.drawWallCollider(ctx, isDiamond, showWallCol);
+      cell.drawWallCollider(ctx, isDiamond, DebugVar.showWallCol);
    }
 }
 
@@ -198,11 +216,9 @@ const Game_Handler = () => {
       clearCanvas();
       tempWallsIDArray = [];
 
-      if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
-      if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
-      if(agent) agent.displayPath(ctx);
-
       cycleCells((cell) => {
+         cell.drawPicture(ctx, tile_Img);
+
          if(cell.isBlocked) cell.drawWall(ctx, false);
          if(isDrawingWalls) drawTempWalls(cell);
 
@@ -210,6 +226,9 @@ const Game_Handler = () => {
          cell.drawHover(ctx, cellPos, "blue");
       });
 
+      if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
+      if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
+      if(agent) agent.displayPath(ctx);
       if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
    });
    
@@ -247,7 +266,7 @@ const Game_Handler = () => {
       if(event.key === "Enter") {
       
          if(startCell && endCell) {
-            agent = new Agent(startCell, endCell, isEuclidean);
+            agent = new Agent(startCell, endCell, DebugVar.isEuclidean);
    
             agent.searchPath();
             agent.showPath = true;
@@ -272,6 +291,6 @@ document.body.oncontextmenu = (event) => {
 window.addEventListener("load", () => {
    
    Game_Handler();  
-   grid.init(isEuclidean);
+   grid.init(DebugVar.isEuclidean, ctx, tile_Img);
    cycleCells((cell) => drawCellInfo(cell));
 });

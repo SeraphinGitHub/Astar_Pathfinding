@@ -24,9 +24,26 @@ class Cell {
          y: this.y + size/2,
       };
 
+      this.manhattanNeb = [
+         "top",
+         "bottom",
+         "left",
+         "right",
+      ];
+
+      this.euclideanNeb = [
+         "topLeft",
+         "topRight",
+         "bottomLeft",
+         "bottomRight",
+      ];
+
+      this.tileIndex;
+      this.tilesArray = [];
+
       this.neighborsList = {};
       this.cameFromCell;
-
+      
       this.fCost = 0;
       this.gCost = 0;
       this.hCost = 0;
@@ -179,9 +196,9 @@ class Cell {
       };
 
       this.setNeb_Left (cellsList, nebID, nebID.left);
-      this.setNeb_Right(cellsList, nebID,nebID.right);
-      this.setNeb_Top(   () => { this.addNeb(cellsList, nebID,nebID.top   ) });
-      this.setNeb_Bottom(() => { this.addNeb(cellsList, nebID,nebID.bottom) });
+      this.setNeb_Right(cellsList, nebID, nebID.right);
+      this.setNeb_Top(   () => { this.addNeb(cellsList, nebID, nebID.top   ) });
+      this.setNeb_Bottom(() => { this.addNeb(cellsList, nebID, nebID.bottom) });
 
       // If Euclidean ==> Can search diagonally
       if(this.isEuclidean) {
@@ -199,6 +216,7 @@ class Cell {
    } 
 
    addNeb(cellsList, nebID, id) {
+
       let side = Object.keys(nebID).find(key => nebID[key] === id);
       this.neighborsList[side] = cellsList[id];
    }
@@ -303,6 +321,28 @@ class Cell {
          this.center.x -offsetX,
          this.center.y +27
       );      
+   }
+
+   drawPicture(ctx, img) {
+
+      const tilePicture = new Image();
+      tilePicture.src = img.src;
+
+      ctx.drawImage(
+         tilePicture,
+
+         // Source
+         this.tileIndex *img.width,
+         0,
+         img.width,
+         img.height,
+         
+         // Destination
+         this.x,
+         this.y,
+         this.size,
+         this.size
+      );
    }
 
    drawWall(ctx, isTempory) {

@@ -41,7 +41,7 @@ class Agent {
          }
 
          let currentCell = this.openList[lowestIndex];
-         let nebList = currentCell.neighborsList;
+         let nebList = currentCell.neighborsList;         
 
          // Scan cell neighbors
          for(let i in nebList) {
@@ -86,15 +86,15 @@ class Agent {
 
    checkWallDiag(nebList, neighbor) {
       
-      let topNeb = nebList["top"];
-      let bottomNeb = nebList["bottom"];
-      let leftNeb = nebList["left"];
-      let rightNeb = nebList["right"];
+      let topNeb =    nebList[ neighbor.manhattanNeb[0] ];
+      let bottomNeb = nebList[ neighbor.manhattanNeb[1] ];
+      let leftNeb =   nebList[ neighbor.manhattanNeb[2] ];
+      let rightNeb =  nebList[ neighbor.manhattanNeb[3] ];
 
-      let topLeftNeb = nebList["topLeft"];
-      let topRightNeb = nebList["topRight"];
-      let bottomLeftNeb = nebList["bottomLeft"];
-      let bottomRightNeb = nebList["bottomRight"];
+      let topLeftNeb =     nebList[ neighbor.euclideanNeb[0] ];
+      let topRightNeb =    nebList[ neighbor.euclideanNeb[1] ];
+      let bottomLeftNeb =  nebList[ neighbor.euclideanNeb[2] ];
+      let bottomRightNeb = nebList[ neighbor.euclideanNeb[3] ];
 
       if( !(topNeb    && leftNeb  && topNeb.isBlocked    && leftNeb.isBlocked  && neighbor === topLeftNeb
          || topNeb    && rightNeb && topNeb.isBlocked    && rightNeb.isBlocked && neighbor === topRightNeb
@@ -102,6 +102,7 @@ class Agent {
          || bottomNeb && rightNeb && bottomNeb.isBlocked && rightNeb.isBlocked && neighbor === bottomRightNeb )
       && this.isEuclidean
       || !this.isEuclidean) {
+
          this.openList.push(neighbor);
       }
    }
