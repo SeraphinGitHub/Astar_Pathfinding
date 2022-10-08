@@ -18,8 +18,8 @@ const DebugVar = {
    // showWallCol: true,
    showWallCol: false,
 
-   // showCellInfo: true,
-   showCellInfo: false,
+   showCellInfo: true,
+   // showCellInfo: false,
 };
 
 const tile_Img = {
@@ -31,9 +31,13 @@ const tile_Img = {
 };
 
 
-const gridHeight = 800;
-const gridWidth = 1400;
-const cellSize = 50;
+const gridHeight = 720;
+const gridWidth = 720;
+const cellSize = 120;
+
+// const gridHeight = 800;
+// const gridWidth = 1400;
+// const cellSize = 50;
 
 const canvas = document.querySelector(".canvas-1");
 const ctx = canvas.getContext("2d");
@@ -76,17 +80,44 @@ const getCellPosition = (event) => {
 
    const bounderies = canvas.getBoundingClientRect();
 
-   const mousePos = {
+   // =============================================
+   // Mouse Position
+   // =============================================
+   const cartesianMouse = {
       x: event.clientX -bounderies.left,
       y: event.clientY -bounderies.top,
    }
 
-   const cellPos = {
-      x: mousePos.x - (mousePos.x % grid.cellSize),
-      y: mousePos.y - (mousePos.y % grid.cellSize),
+   const isometricMouse = {
+      x:  Math.floor(cartesianMouse.x -cartesianMouse.y),
+      y:  Math.floor((cartesianMouse.x +cartesianMouse.y)) /2,
    }
 
-   let cellID = `${cellPos.x /grid.cellSize}-${cellPos.y /grid.cellSize}`;
+
+   // =============================================
+   // Cell Position
+   // =============================================
+   const cartCellPos = {
+      x: cartesianMouse.x - (cartesianMouse.x % grid.cellSize),
+      y: cartesianMouse.y - (cartesianMouse.y % grid.cellSize),
+   }
+   
+   const isoCellPos = {
+      x: Math.floor(isometricMouse.x /grid.cellSize) *grid.cellSize,
+      y: Math.floor(isometricMouse.y /grid.cellSize) *grid.cellSize /2,
+   }
+
+   let mousePos = cartesianMouse;
+   // let mousePos = isometricMouse;
+
+   let cellPos = cartCellPos;
+   // let cellPos = isoCellPos;
+
+   let cartCellID = `${cellPos.x /grid.cellSize}-${cellPos.y /grid.cellSize}`;
+   let isoCellID = `${cellPos.x}-${cellPos.y}`;
+
+   let cellID = cartCellID;
+   // let cellID = isoCellID;
 
    return {
       id: cellID,
@@ -156,8 +187,8 @@ const drawCellInfo = (cell) => {
 
    if(DebugVar.showCellInfo) {
       cell.drawFrame(ctx);
-      cell.drawCenter(ctx);
-      cell.drawID(ctx);
+      // cell.drawCenter(ctx);
+      // cell.drawID(ctx);
    }
 }
 
@@ -211,25 +242,25 @@ const Game_Handler = () => {
    // ===================================
    canvas.addEventListener("mousemove", (event) => {
 
-      cellPos = getCellPosition(event);
-      setDOM(cellPos);      
-      clearCanvas();
-      tempWallsIDArray = [];
+      // cellPos = getCellPosition(event);
+      // setDOM(cellPos);      
+      // clearCanvas();
+      // tempWallsIDArray = [];
 
-      cycleCells((cell) => {
-         cell.drawPicture(ctx, tile_Img);
+      // cycleCells((cell) => {
+      //    cell.drawPicture(ctx, tile_Img);
 
-         if(cell.isBlocked) cell.drawWall(ctx, false);
-         if(isDrawingWalls) drawTempWalls(cell);
+      //    if(cell.isBlocked) cell.drawWall(ctx, false);
+      //    if(isDrawingWalls) drawTempWalls(cell);
 
-         drawCellInfo(cell);
-         cell.drawHover(ctx, cellPos, "blue");
-      });
+      //    drawCellInfo(cell);
+      //    cell.drawHover(ctx, cellPos, "blue");
+      // });
 
-      if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
-      if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
-      if(agent) agent.displayPath(ctx);
-      if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
+      // if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
+      // if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
+      // if(agent) agent.displayPath(ctx);
+      // if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
    });
    
 

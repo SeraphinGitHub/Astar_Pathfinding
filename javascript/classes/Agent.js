@@ -87,14 +87,14 @@ class Agent {
    checkWallDiag(nebList, neighbor) {
       
       let topNeb =    nebList[ neighbor.manhattanNeb[0] ];
-      let bottomNeb = nebList[ neighbor.manhattanNeb[1] ];
-      let leftNeb =   nebList[ neighbor.manhattanNeb[2] ];
-      let rightNeb =  nebList[ neighbor.manhattanNeb[3] ];
+      let rightNeb =  nebList[ neighbor.manhattanNeb[1] ];
+      let bottomNeb = nebList[ neighbor.manhattanNeb[2] ];
+      let leftNeb =   nebList[ neighbor.manhattanNeb[3] ];
 
       let topLeftNeb =     nebList[ neighbor.euclideanNeb[0] ];
       let topRightNeb =    nebList[ neighbor.euclideanNeb[1] ];
-      let bottomLeftNeb =  nebList[ neighbor.euclideanNeb[2] ];
-      let bottomRightNeb = nebList[ neighbor.euclideanNeb[3] ];
+      let bottomRightNeb = nebList[ neighbor.euclideanNeb[2] ];
+      let bottomLeftNeb =  nebList[ neighbor.euclideanNeb[3] ];
 
       if( !(topNeb    && leftNeb  && topNeb.isBlocked    && leftNeb.isBlocked  && neighbor === topLeftNeb
          || topNeb    && rightNeb && topNeb.isBlocked    && rightNeb.isBlocked && neighbor === topRightNeb

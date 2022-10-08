@@ -26,16 +26,16 @@ class Cell {
 
       this.manhattanNeb = [
          "top",
+         "right",
          "bottom",
          "left",
-         "right",
       ];
 
       this.euclideanNeb = [
          "topLeft",
          "topRight",
-         "bottomLeft",
          "bottomRight",
+         "bottomLeft",
       ];
 
       this.tileIndex;
@@ -184,15 +184,15 @@ class Cell {
    initNeighborsList(cellsList) {
 
       const nebID = {
-         left:  `${this.i -1}-${this.j   }`,
-         right: `${this.i +1}-${this.j   }`,
          top:   `${this.i   }-${this.j -1}`,
+         right: `${this.i +1}-${this.j   }`,
          bottom:`${this.i   }-${this.j +1}`,
+         left:  `${this.i -1}-${this.j   }`,
 
          topLeft:    `${this.i -1}-${this.j -1}`,
          topRight:   `${this.i +1}-${this.j -1}`,
-         bottomLeft: `${this.i -1}-${this.j +1}`,
          bottomRight:`${this.i +1}-${this.j +1}`,
+         bottomLeft: `${this.i -1}-${this.j +1}`,
       };
 
       this.setNeb_Left (cellsList, nebID, nebID.left);
@@ -323,10 +323,11 @@ class Cell {
       );      
    }
 
-   drawPicture(ctx, img) {
+   drawPicture(ctx, img, baseTilesTypes, aze) {
 
       const tilePicture = new Image();
       tilePicture.src = img.src;
+
 
       ctx.drawImage(
          tilePicture,
@@ -343,6 +344,43 @@ class Cell {
          this.size,
          this.size
       );
+
+      ctx.fillStyle = "black";
+      ctx.font = "20px Verdana";
+      ctx.textAlign = "center";
+
+      let i = 0;
+      let offset = 25;
+
+      this.tilesArray.forEach(tile => {
+         ctx.fillText(
+            tile,
+            this.center.x,
+            this.center.y -offset +i
+         );
+
+         i += offset;
+      });
+
+      ctx.fillStyle = "red";
+      ctx.fillText(
+         aze +":"+ baseTilesTypes[this.tileIndex],
+         this.center.x,
+         this.center.y +offset *2
+      );
+
+      if(aze === 0) {
+
+         ctx.strokeStyle = "darkviolet";
+         ctx.lineWidth = 8;
+         ctx.strokeRect(
+            this.x,
+            this.y,
+            this.size,
+            this.size
+         );
+      }
+
    }
 
    drawWall(ctx, isTempory) {

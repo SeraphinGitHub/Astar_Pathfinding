@@ -22,16 +22,22 @@ p {
    align-content: center;
 }
 
+.isometric {
+   /* transform: rotateX(60deg); */
+}
+
 canvas {
+   /* transform: rotateZ(-45deg); */
    background: mediumseagreen;
 }
 
 .coordinates {
+   position: absolute;
+   top: 15px;
    justify-content: space-around;
    height: auto;
    width: 60%;
    background: white;
-   margin-bottom: 15px;
 }
 
 .coordinates p {
