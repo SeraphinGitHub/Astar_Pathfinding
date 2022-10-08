@@ -31,13 +31,13 @@ const tile_Img = {
 };
 
 
-const gridHeight = 720;
-const gridWidth = 720;
-const cellSize = 120;
+// const gridHeight = 720;
+// const gridWidth = 1200;
+// const cellSize = 120;
 
-// const gridHeight = 800;
-// const gridWidth = 1400;
-// const cellSize = 50;
+const gridHeight = 800;
+const gridWidth = 1400;
+const cellSize = 50;
 
 const canvas = document.querySelector(".canvas-1");
 const ctx = canvas.getContext("2d");

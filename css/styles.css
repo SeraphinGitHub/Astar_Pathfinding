@@ -32,8 +32,9 @@ canvas {
 }
 
 .coordinates {
-   position: absolute;
-   top: 15px;
+   margin-bottom: 15px;
+   /* position: absolute; */
+   /* top: 15px; */
    justify-content: space-around;
    height: auto;
    width: 60%;

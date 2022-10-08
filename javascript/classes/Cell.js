@@ -323,7 +323,7 @@ class Cell {
       );      
    }
 
-   drawPicture(ctx, img, baseTilesTypes, aze) {
+   drawPicture(ctx, img, baseTilesTypes, count) {
 
       const tilePicture = new Image();
       tilePicture.src = img.src;
@@ -345,41 +345,41 @@ class Cell {
          this.size
       );
 
-      ctx.fillStyle = "black";
-      ctx.font = "20px Verdana";
-      ctx.textAlign = "center";
+      // ctx.fillStyle = "black";
+      // ctx.font = "20px Verdana";
+      // ctx.textAlign = "center";
 
-      let i = 0;
-      let offset = 25;
+      // let i = 0;
+      // let offset = 25;
 
-      this.tilesArray.forEach(tile => {
-         ctx.fillText(
-            tile,
-            this.center.x,
-            this.center.y -offset +i
-         );
+      // this.tilesArray.forEach(tile => {
+      //    ctx.fillText(
+      //       tile,
+      //       this.center.x,
+      //       this.center.y -offset +i
+      //    );
 
-         i += offset;
-      });
+      //    i += offset;
+      // });
 
-      ctx.fillStyle = "red";
-      ctx.fillText(
-         aze +":"+ baseTilesTypes[this.tileIndex],
-         this.center.x,
-         this.center.y +offset *2
-      );
+      // ctx.fillStyle = "red";
+      // ctx.fillText(
+      //    count +":"+ baseTilesTypes[this.tileIndex],
+      //    this.center.x,
+      //    this.center.y +offset *2
+      // );
 
-      if(aze === 0) {
+      // if(count === 0) {
 
-         ctx.strokeStyle = "darkviolet";
-         ctx.lineWidth = 8;
-         ctx.strokeRect(
-            this.x,
-            this.y,
-            this.size,
-            this.size
-         );
-      }
+      //    ctx.strokeStyle = "darkviolet";
+      //    ctx.lineWidth = 8;
+      //    ctx.strokeRect(
+      //       this.x,
+      //       this.y,
+      //       this.size,
+      //       this.size
+      //    );
+      // }
 
    }
 
