@@ -105,8 +105,8 @@ class Grid {
          ],
       };
 
-      this.tilesOpenList = [];
-      this.tilesClosedList = [];
+      this.openTilesList = [];
+      this.closedTilesList = [];
    }
 
    rand(maxValue) {
@@ -153,48 +153,45 @@ class Grid {
       startTile.tilesArray = this.tilesConnections[cellTileType];
       startTile.drawPicture(ctx, img, this.baseTilesTypes, count);
 
-      this.tilesOpenList.push(startTile);
+      this.openTilesList.push(startTile);
 
-      while(this.tilesOpenList.length > 0) {
+      while(this.openTilesList.length > 0) {
 
-         let cell = this.tilesOpenList[this.tilesOpenList.length -1];
-         let nebList = cell.neighborsList;         
-
+         let cell = this.openTilesList[0];
+         let nebList = cell.neighborsList;
+         
+         // Scan cell neighbors
          for(let i in nebList) {
             let neighbor = nebList[i];
             
-            if(!this.tilesClosedList.includes(neighbor)) {
-               if(!neighbor.tileIndex && !this.tilesOpenList.includes(neighbor)) {
-   
+            if(!this.closedTilesList.includes(neighbor)) {
+               if(!this.tileIndex && !this.openTilesList.includes(neighbor)) {
+
                   count++;
                   let randIndex =  this.rand(cell.tilesArray.length);
                   let tileType = cell.tilesArray[randIndex];
                   // let neighborNebList = neighbor.neighborsList;
-   
+
                   // for(let i in neighborNebList) {
                   //    let neighborsNeb = neighborNebList[i];
                      
                   //    if(!neighborsNeb.tileIndex || neighborsNeb.tilesArray.includes(tileType)) {
-   
-                        neighbor.tileIndex = this.baseTilesTypes.indexOf(tileType);
-                        neighbor.tilesArray = this.tilesConnections[tileType];
-                        neighbor.drawPicture(ctx, img, this.baseTilesTypes, count);
-                        
-                        // if(!this.tilesOpenList.includes(neighbor)) this.tilesOpenList.push(neighbor);
+
+                  neighbor.tileIndex = this.baseTilesTypes.indexOf(tileType);
+                  neighbor.tilesArray = this.tilesConnections[tileType];
+                  neighbor.drawPicture(ctx, img, this.baseTilesTypes, count);
          
                   //    }
                   // }
-   
-                  this.tilesOpenList.push(neighbor);
+
+                  this.openTilesList.push(neighbor);
                }
             }
          }
-
-         this.tilesOpenList.splice(this.tilesOpenList.length -1, 1);
-         this.tilesClosedList.push(cell);
+         
+         this.openTilesList.splice(0, 1);
+         this.closedTilesList.push(cell);
       }
-
-      // console.log(this.tilesClosedList); // ******************************************************
    }
 
    setNebTileArray(neighborArray, cell, count, ctx, img) {
