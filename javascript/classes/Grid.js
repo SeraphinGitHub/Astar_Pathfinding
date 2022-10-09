@@ -103,6 +103,25 @@ class Grid {
             "sand",
             "ocean",
          ],
+
+         // largeTree: [
+         //    "largeTree",
+         //    "grass",
+         // ],
+      
+         // grass: [
+         //    "grass",
+         //    "sand",
+         // ],
+      
+         // sand: [
+         //    "sand",
+         //    "ocean",
+         // ],
+      
+         // ocean: [
+         //    "ocean",
+         // ],
       };
 
       this.openTilesList = [];
@@ -129,15 +148,58 @@ class Grid {
          let cell = this.cellsList[i];
 
          cell.initNeighborsList(this.cellsList);
+         // this.randomGenerator(ctx, img, cell);
+
+         switch(cell.id) {
+
+            case "0-0": cell.tileIndex = 0; 
+            break;
+            case "0-1": cell.tileIndex = 0; 
+            break;
+            case "0-2": cell.tileIndex = 1; 
+            break;
+            case "0-3": cell.tileIndex = 1; 
+            break;
+
+            case "1-0": cell.tileIndex = 0; 
+            break;
+            case "1-1": cell.tileIndex = 1; 
+            break;
+            case "1-2": cell.tileIndex = 1; 
+            break;
+            case "1-3": cell.tileIndex = 2; 
+            break;
+
+            case "2-0": cell.tileIndex = 1; 
+            break;
+            case "2-1": cell.tileIndex = 1; 
+            break;
+            case "2-2": cell.tileIndex = 2; 
+            break;
+            case "2-3": cell.tileIndex = 2; 
+            break;
+
+            case "3-0": cell.tileIndex = 2; 
+            break;
+            case "3-1": cell.tileIndex = 2; 
+            break;
+            case "3-2": cell.tileIndex = 2; 
+            break;
+            case "3-3": cell.tileIndex = 3; 
+            break;
+         }
+
+         cell.drawPicture(ctx, img);
       }
-      
-      this.randomGenerator(ctx, img);
+
+      // this.randomGenerator(ctx, img);
    }
 
 
    // Map Random Generetor
    randomGenerator(ctx, img) {
-
+      
+      {
       let count = 0;
 
       // Set start cell
@@ -166,31 +228,68 @@ class Grid {
             
             if(!this.closedTilesList.includes(neighbor)) {
                if(!this.tileIndex && !this.openTilesList.includes(neighbor)) {
+                  
+                  if(neighbor.tilesArray.length === 0) {
 
-                  count++;
-                  let randIndex =  this.rand(cell.tilesArray.length);
-                  let tileType = cell.tilesArray[randIndex];
-                  // let neighborNebList = neighbor.neighborsList;
+                     count++;
+                     let randIndex =  this.rand(cell.tilesArray.length);
+                     let tileType = cell.tilesArray[randIndex];
 
-                  // for(let i in neighborNebList) {
-                  //    let neighborsNeb = neighborNebList[i];
-                     
-                  //    if(!neighborsNeb.tileIndex || neighborsNeb.tilesArray.includes(tileType)) {
-
-                  neighbor.tileIndex = this.baseTilesTypes.indexOf(tileType);
-                  neighbor.tilesArray = this.tilesConnections[tileType];
-                  neighbor.drawPicture(ctx, img, this.baseTilesTypes, count);
-         
-                  //    }
-                  // }
-
-                  this.openTilesList.push(neighbor);
+                     neighbor.tileIndex = this.baseTilesTypes.indexOf(tileType);
+                     neighbor.tilesArray = this.tilesConnections[tileType];
+                     neighbor.drawPicture(ctx, img, this.baseTilesTypes, count);
+   
+                     this.openTilesList.push(neighbor);
+                  }
                }
             }
          }
          
          this.openTilesList.splice(0, 1);
          this.closedTilesList.push(cell);
+      }
+      }
+
+      {
+      // if(!cell.tileIndex) {
+         
+      //    // Set other tiles
+      //    if(cell.id !== "0-0" && cell.tilesArray.length !== 0) {
+            
+      //       let randIndex = this.rand(cell.tilesArray.length);
+      //       let tileType = cell.tilesArray[randIndex];
+      //       cell.tileIndex = this.baseTilesTypes.indexOf(tileType);
+
+      //       cell.drawPicture(ctx, img, this.baseTilesTypes);
+
+      //       let nebList = cell.neighborsList;
+            
+      //       // Set Neighbors
+      //       for(let i in nebList) {
+      //          let neighbor = nebList[i];
+               
+      //          neighbor.tilesArray = cell.tilesArray;
+      //       }
+      //    }
+         
+      //    // Set first tile
+      //    else if(cell.id === "0-0") {
+      //       cell.tileIndex = this.rand(this.baseTilesTypes.length);
+      //       let tileType = this.baseTilesTypes[cell.tileIndex];
+      //       cell.tilesArray = this.tilesConnections[tileType];
+
+      //       cell.drawPicture(ctx, img, this.baseTilesTypes);
+
+      //       let nebList = cell.neighborsList;
+            
+      //       // Set Neighbors
+      //       for(let i in nebList) {
+      //          let neighbor = nebList[i];
+               
+      //          neighbor.tilesArray = cell.tilesArray;
+      //       }
+      //    }
+      // }
       }
    }
 

@@ -23,7 +23,6 @@ const DebugVar = {
 };
 
 const tile_Img = {
-   
    // src: "images/tiles/GroundTiles.png",
    src: "images/tiles/TestTiles.png",
    width: 200,
@@ -31,13 +30,26 @@ const tile_Img = {
 };
 
 
-// const gridHeight = 720;
+const tree_img = {
+   src: "images/tiles/tree_0.png",
+   width: 158,
+   height: 190,
+}
+
+// const cos_45deg = Math.floor(Math.cos(0.785, 1) *1000) /1000;
+const cos_45deg = 0.707;
+
+// const gridHeight = 800;
 // const gridWidth = 1200;
-// const cellSize = 120;
+// const cellSize = 80;
 
 const gridHeight = 800;
-const gridWidth = 1400;
-const cellSize = 50;
+const gridWidth = 800;
+const cellSize = 200;
+
+// const gridHeight = 800;
+// const gridWidth = 1400;
+// const cellSize = 50;
 
 const canvas = document.querySelector(".canvas-1");
 const ctx = canvas.getContext("2d");
@@ -76,6 +88,11 @@ const setDOM = (cellPos) => {
    DOM.cellID.textContent = `id : ${cellPos.id}`;
 }
 
+const calcHypotenuse = (distX, distY) => {
+   
+   return Math.floor(Math.sqrt(distX * distX + distY * distY));
+}
+
 const getCellPosition = (event) => {
 
    const bounderies = canvas.getBoundingClientRect();
@@ -83,14 +100,14 @@ const getCellPosition = (event) => {
    // =============================================
    // Mouse Position
    // =============================================
-   const cartesianMouse = {
+   const cartMouse = {
       x: event.clientX -bounderies.left,
       y: event.clientY -bounderies.top,
    }
 
-   const isometricMouse = {
-      x:  Math.floor(cartesianMouse.x -cartesianMouse.y),
-      y:  Math.floor((cartesianMouse.x +cartesianMouse.y)) /2,
+   const isoMouse = {
+      x:  Math.floor( ((cartMouse.x -cartMouse.y *2) /cos_45deg) /2 ) +cellSize *2,
+      y:  Math.floor( ((cartMouse.x +cartMouse.y *2) /2) /cos_45deg ) -cellSize *2,
    }
 
 
@@ -98,20 +115,20 @@ const getCellPosition = (event) => {
    // Cell Position
    // =============================================
    const cartCellPos = {
-      x: cartesianMouse.x - (cartesianMouse.x % grid.cellSize),
-      y: cartesianMouse.y - (cartesianMouse.y % grid.cellSize),
+      x: cartMouse.x - (cartMouse.x % grid.cellSize),
+      y: cartMouse.y - (cartMouse.y % grid.cellSize),
    }
    
    const isoCellPos = {
-      x: Math.floor(isometricMouse.x /grid.cellSize) *grid.cellSize,
-      y: Math.floor(isometricMouse.y /grid.cellSize) *grid.cellSize /2,
+      x: Math.floor(isoMouse.x /grid.cellSize) *grid.cellSize,
+      y: Math.floor(isoMouse.y /grid.cellSize) *grid.cellSize /2,
    }
 
-   let mousePos = cartesianMouse;
-   // let mousePos = isometricMouse;
+   // let mousePos = cartMouse;
+   let mousePos = isoMouse;
 
-   let cellPos = cartCellPos;
-   // let cellPos = isoCellPos;
+   // let cellPos = cartCellPos;
+   let cellPos = isoCellPos;
 
    let cartCellID = `${cellPos.x /grid.cellSize}-${cellPos.y /grid.cellSize}`;
    let isoCellID = `${cellPos.x}-${cellPos.y}`;
@@ -242,20 +259,44 @@ const Game_Handler = () => {
    // ===================================
    canvas.addEventListener("mousemove", (event) => {
 
-      // cellPos = getCellPosition(event);
-      // setDOM(cellPos);      
-      // clearCanvas();
-      // tempWallsIDArray = [];
+      cellPos = getCellPosition(event);
+      setDOM(cellPos);      
+      clearCanvas();
+      tempWallsIDArray = [];
 
-      // cycleCells((cell) => {
-      //    cell.drawPicture(ctx, tile_Img);
+      cycleCells((cell) => {
+         cell.drawPicture(ctx, tile_Img);
 
-      //    if(cell.isBlocked) cell.drawWall(ctx, false);
-      //    if(isDrawingWalls) drawTempWalls(cell);
+         // if(cell.isBlocked) cell.drawWall(ctx, false);
+         // if(isDrawingWalls) drawTempWalls(cell);
 
-      //    drawCellInfo(cell);
-      //    cell.drawHover(ctx, cellPos, "blue");
-      // });
+         drawCellInfo(cell);
+         // cell.drawHover(ctx, cellPos, "blue");
+      });
+
+
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(
+         // Math.floor(0 -280), Math.floor((0 +280)) /2,
+         400, 200,
+         20, 0, Math.PI * 2
+      );
+      ctx.fill();
+      ctx.closePath();
+
+
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 4;
+   
+      ctx.strokeRect(
+         400,
+         200,
+         200,
+         200
+      );
+
+
 
       // if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
       // if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
@@ -323,5 +364,6 @@ window.addEventListener("load", () => {
    
    Game_Handler();  
    grid.init(DebugVar.isEuclidean, ctx, tile_Img);
+   // grid.init(DebugVar.isEuclidean, ctx, isoTile_img);
    cycleCells((cell) => drawCellInfo(cell));
 });

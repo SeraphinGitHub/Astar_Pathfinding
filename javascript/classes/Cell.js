@@ -328,7 +328,6 @@ class Cell {
       const tilePicture = new Image();
       tilePicture.src = img.src;
 
-
       ctx.drawImage(
          tilePicture,
 
@@ -369,17 +368,17 @@ class Cell {
       //    this.center.y +offset *2
       // );
 
-      // if(count === 0) {
+      if(count === 0) {
 
-      //    ctx.strokeStyle = "darkviolet";
-      //    ctx.lineWidth = 8;
-      //    ctx.strokeRect(
-      //       this.x,
-      //       this.y,
-      //       this.size,
-      //       this.size
-      //    );
-      // }
+         ctx.strokeStyle = "darkviolet";
+         ctx.lineWidth = 8;
+         ctx.strokeRect(
+            this.x,
+            this.y,
+            this.size,
+            this.size
+         );
+      }
 
    }
 
