@@ -29,12 +29,14 @@ const tile_Img = {
    height: 200,
 };
 
-
 const tree_img = {
    src: "images/tiles/tree_0.png",
    width: 158,
    height: 190,
 }
+
+const treePicture = new Image();
+treePicture.src = tree_img.src;
 
 // const cos_45deg = Math.floor(Math.cos(0.785, 1) *1000) /1000;
 const cos_45deg = 0.707;
@@ -45,7 +47,7 @@ const cos_45deg = 0.707;
 
 const gridHeight = 800;
 const gridWidth = 800;
-const cellSize = 200;
+const cellSize = 100;
 
 // const gridHeight = 800;
 // const gridWidth = 1400;
@@ -76,7 +78,7 @@ const clearCanvas = () => {
 }
 
 const clearClickedCell = (cellPos) => {
-   ctx.clearRect(cellPos.x, cellPos.y, grid.cellSize, grid.cellSize);
+   ctx.clearRect(cellPos.x, cellPos.y, cellSize, cellSize);
 }
 
 const setDOM = (cellPos) => {
@@ -97,40 +99,27 @@ const getCellPosition = (event) => {
 
    const bounderies = canvas.getBoundingClientRect();
 
-   // =============================================
-   // Mouse Position
-   // =============================================
+   // Cartesian
    const cartMouse = {
       x: event.clientX -bounderies.left,
       y: event.clientY -bounderies.top,
    }
 
+   // Isometric
    const isoMouse = {
-      x:  Math.floor( ((cartMouse.x -cartMouse.y *2) /cos_45deg) /2 ) +cellSize *2,
-      y:  Math.floor( ((cartMouse.x +cartMouse.y *2) /2) /cos_45deg ) -cellSize *2,
-   }
-
-
-   // =============================================
-   // Cell Position
-   // =============================================
-   const cartCellPos = {
-      x: cartMouse.x - (cartMouse.x % grid.cellSize),
-      y: cartMouse.y - (cartMouse.y % grid.cellSize),
-   }
-   
-   const isoCellPos = {
-      x: Math.floor(isoMouse.x /grid.cellSize) *grid.cellSize,
-      y: Math.floor(isoMouse.y /grid.cellSize) *grid.cellSize /2,
+      x:  Math.floor( ((cartMouse.x -cartMouse.y *2) /cos_45deg) /2 ) +gridWidth /2,
+      y:  Math.floor( ((cartMouse.x +cartMouse.y *2) /2) /cos_45deg ) -gridWidth /2,
    }
 
    // let mousePos = cartMouse;
    let mousePos = isoMouse;
+   
+   const cellPos = {
+      x: mousePos.x - (mousePos.x % cellSize),
+      y: mousePos.y - (mousePos.y % cellSize),
+   }
 
-   // let cellPos = cartCellPos;
-   let cellPos = isoCellPos;
-
-   let cartCellID = `${cellPos.x /grid.cellSize}-${cellPos.y /grid.cellSize}`;
+   let cartCellID = `${cellPos.x /cellSize}-${cellPos.y /cellSize}`;
    let isoCellID = `${cellPos.x}-${cellPos.y}`;
 
    let cellID = cartCellID;
@@ -140,8 +129,8 @@ const getCellPosition = (event) => {
       id: cellID,
       x: cellPos.x,
       y: cellPos.y,
-      centerX: cellPos.x +grid.cellSize /2,
-      centerY: cellPos.y +grid.cellSize /2,
+      centerX: cellPos.x +cellSize /2,
+      centerY: cellPos.y +cellSize /2,
       mouseX: mousePos.x,
       mouseY: mousePos.y,
    }
@@ -204,8 +193,8 @@ const drawCellInfo = (cell) => {
 
    if(DebugVar.showCellInfo) {
       cell.drawFrame(ctx);
-      // cell.drawCenter(ctx);
-      // cell.drawID(ctx);
+      cell.drawCenter(ctx);
+      cell.drawID(ctx);
    }
 }
 
@@ -267,41 +256,35 @@ const Game_Handler = () => {
       cycleCells((cell) => {
          cell.drawPicture(ctx, tile_Img);
 
-         // if(cell.isBlocked) cell.drawWall(ctx, false);
-         // if(isDrawingWalls) drawTempWalls(cell);
+         if(cell.isBlocked) cell.drawWall(ctx, false);
+         if(isDrawingWalls) drawTempWalls(cell);
 
          drawCellInfo(cell);
-         // cell.drawHover(ctx, cellPos, "blue");
+         cell.drawHover(ctx, cellPos, "blue");
       });
 
 
-      ctx.fillStyle = "red";
-      ctx.beginPath();
-      ctx.arc(
-         // Math.floor(0 -280), Math.floor((0 +280)) /2,
-         400, 200,
-         20, 0, Math.PI * 2
-      );
-      ctx.fill();
-      ctx.closePath();
+      ctx.drawImage(
+         treePicture,
 
-
-      ctx.strokeStyle = "blue";
-      ctx.lineWidth = 4;
-   
-      ctx.strokeRect(
-         400,
-         200,
-         200,
-         200
+         // Source
+         0,
+         0,
+         tree_img.width,
+         tree_img.height,
+         
+         // Destination
+         450 -tree_img.width /2,
+         450 -tree_img.height /2,
+         cellSize *2,
+         cellSize *2
       );
 
 
-
-      // if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
-      // if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
-      // if(agent) agent.displayPath(ctx);
-      // if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
+      if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
+      if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
+      if(agent) agent.displayPath(ctx);
+      if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
    });
    
 
