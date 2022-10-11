@@ -43,6 +43,7 @@ let cellSize = 120;
 let gridHeight = gridSize;
 let gridWidth = gridSize;
 let cos_45deg = 0.707;
+let cos_30deg = 0.866;
 
 const grid = new Grid(gridWidth, gridHeight, cellSize);
 
@@ -100,29 +101,45 @@ treePicture.src = treeImg.src;
 
 const drawTree = () => {
 
-   ctx.units.strokeStyle = "darkviolet";
+   // ctx.units.strokeStyle = "darkviolet";
+   // ctx.units.lineWidth = 2;
+   // ctx.units.strokeRect(
+   //    536,
+   //    512,
+   //    100,
+   //    100
+   // );
+
+   const coord_IsoSelect = {
+      x: 678, // Math.floor(mousePos.isoX) ==> But need to use from isoMousePos.x
+      y: 211, // Math.floor(mousePos.isoY) ==> But need to use from isoMousePos.y
+   }
+
+   ctx.units.strokeStyle = "yellow";
    ctx.units.lineWidth = 2;
    ctx.units.strokeRect(
-      500,
-      500,
-      100,
-      100
+      // viewport.width  /2 - Math.floor(cos_45deg *gridWidth)     +cellPos.azeX,
+      // viewport.height /2 - Math.floor(cos_45deg *gridHeight /2) +cellPos.azeY + Math.floor(cos_30deg *cellSize /2),
+      viewport.width  /2 - Math.floor(cos_45deg *gridWidth)     +coord_IsoSelect.x,
+      viewport.height /2 - Math.floor(cos_45deg *gridHeight /2) +coord_IsoSelect.y + Math.floor(cos_30deg *cellSize /2),
+      50,
+      50
    );
 
-   ctx.buildings.drawImage(
-      treePicture,
-      0, 0, treeImg.size, treeImg.size,
+   // ctx.buildings.drawImage(
+   //    treePicture,
+   //    0, 0, treeImg.size, treeImg.size,
       
-      // Destination
-      // 600,
-      // 200,
-      cellPos.cartX -treeImg.offsetX,
-      cellPos.cartY -treeImg.offsetY,
-      // 200 -treeImg.offsetX,
-      // 200 -treeImg.offsetY,
-      186,
-      186
-   );
+   //    // Destination
+   //    // 600,
+   //    // 200,
+   //    cellPos.cartX -treeImg.offsetX,
+   //    cellPos.cartY -treeImg.offsetY,
+   //    // 200 -treeImg.offsetX,
+   //    // 200 -treeImg.offsetY,
+   //    186,
+   //    186
+   // );
 }
 // ========== TEST ==========
 
@@ -151,58 +168,125 @@ const setDOM = (cellPos) => {
 const getCellPosition = (event) => {
 
    const cartBounderies = canvasObj.units.getBoundingClientRect();
-   const isoBounderies = canvasObj.isoSelect.getBoundingClientRect();
+   const isoBounderies = canvasObj.terrain.getBoundingClientRect();
 
    // Cartesian
-   const cartMouse = {
-      cartX: event.clientX -cartBounderies.left,
-      cartY: event.clientY -cartBounderies.top,
-      isoX:  event.clientX -isoBounderies.left,
-      isoY:  event.clientY -isoBounderies.top,
+   const mousePos = {
+      screenX: event.clientX -cartBounderies.left,
+      screenY: event.clientY -cartBounderies.top,
+      isoX:    event.clientX -isoBounderies.left,
+      isoY:    event.clientY -isoBounderies.top,
    }
 
    // Isometric
-   const isoMouse = {
-      x:  Math.floor( ((cartMouse.isoX -cartMouse.isoY *2) /cos_45deg) /2 ) +gridWidth /2,
-      y:  Math.floor( ((cartMouse.isoX +cartMouse.isoY *2) /2) /cos_45deg ) -gridWidth /2,
+   const isoMousePos = {
+      x:  Math.floor( ((mousePos.isoX -mousePos.isoY *2) /cos_45deg) /2 ) +gridWidth /2,
+      y:  Math.floor( ((mousePos.isoX +mousePos.isoY *2) /2) /cos_45deg ) -gridWidth /2,
 
-      // to_CartX:  Math.floor( ((cartMouse.isoY /2 +cartMouse.isoX) *cos_45deg) *2 ) -gridWidth *2,
-      // to_CartY:  Math.floor( ((cartMouse.isoY /2 -cartMouse.isoX) *2) *cos_45deg ) +gridWidth *2,
+      // CartIso to Screen
+      // viewport.width  /2 - Math.floor(cos_45deg *gridWidth)     +mousePos.isoX,
+      // viewport.height /2 - Math.floor(cos_45deg *gridHeight /2) +mousePos.isoY + Math.floor(cos_30deg *cellSize /2),
 
-      to_CartX:  Math.floor( ((cartMouse.isoY /2 +cartMouse.isoX) /cos_45deg) /2 ) -gridWidth /2,
-      to_CartY:  Math.floor( ((cartMouse.isoY /2 -cartMouse.isoX) *2) /cos_45deg ) +gridWidth /2,
+
+      // ****************************************
+      // screenX = 177 ==> cartIsoX = -105 ==> isoX = 436
+      // screenY = 153 ==> cartIsoY = -22  ==> isoY = -584
+      
+      // screenX = 1245 ==> cartIsoX = 963 ==> isoX = 796
+      // screenY = 432  ==> cartIsoY = 257 ==> isoY = 566
+
+      // screenX = 790 ==> cartIsoX = 508 ==> isoX = 49
+      // screenY = 733 ==> cartIsoY = 558 ==> isoY = 670
+
+
+      // screenX = 1 ==> cartIsoX = -281 ==> isoX = 526
+      // screenY = 1 ==> cartIsoY = -174 ==> isoY = -923
+      
+      // screenX = 283 ==> cartIsoX = 1   ==> isoX = 1
+      // screenY = 513 ==> cartIsoY = 338 ==> isoY = 0
+
+      // screenX = 959 ==> cartIsoX = 677 ==> isoX = 958
+      // screenY = 175 ==> cartIsoY = 0   ==> isoY = 0
+      // ****************************************
+
+      
+      // CartIso to Iso
+      // 818:  Math.floor( ((1359 -473 *2) /0.707) /2 ) +960 /2,
+      // 704:  Math.floor( ((1359 +473 *2) /2) /0.707 ) -960 /2,
+
+      // 818:  Math.floor( ((1359 -946) /0.707) /2 ) +480,
+      // 704:  Math.floor( ((1359 +946) /2) /0.707 ) -480,
+
+      // 818:  Math.floor( (413 /0.707) /2 ) +480,
+      // 704:  Math.floor( (2305 /2) /0.707 ) -480,
+
+      // 818:  Math.floor( 584.158 /2 ) +480,
+      // 704:  Math.floor( 1152.5 /0.707 ) -480,
+
+      // 818:  Math.floor( 292.079 ) +480,
+      // 704:  Math.floor( 1630.127 ) -480,
+
+      // 818:  Math.floor( 292 ) +480,
+      // 704:  Math.floor( 1630  ) -480,
+
+      // 818:  292 + 480,
+      // 704:  1630 - 480,
+
+
+      // // Iso to CartIso
+      // 818:  818 -480,
+      // 704:  704 + 480,
+
+      // 818:  Math.floor( 818 ) -480,
+      // 704:  Math.floor( 704 ) +480,
+
+      // 818:  Math.floor( 818 /2 ) -480,
+      // 704:  Math.floor( 633.5 /0.707 ) +480,
+
+      // 818:  Math.floor( (91 /0.707) /2 ) -480,
+      // 704:  Math.floor( (1267 /2) /0.707 ) +480,
+
+      // 818:  Math.floor( (91 /0.707) /2 ) -480,
+      // 704:  Math.floor( (1267 /2) /0.707 ) +480,
+
+      // 818:  Math.floor( ((1359 -588) /0.707) /2 ) -480,
+      // 704:  Math.floor( ((1359 +588) /2) /0.707 ) +480,
+
+      // 818:  Math.floor( ((1359 -473 *2) /0.707) /2 ) -960 /2,
+      // 704:  Math.floor( ((1359 +473 *2) /2) /0.707 ) +960 /2,
    }
 
+
    // Cell Position
-   const cellPos = {
-      x: isoMouse.x - (isoMouse.x % cellSize),
-      y: isoMouse.y - (isoMouse.y % cellSize),
+   const isoCellPos = {
+      x: isoMousePos.x - (isoMousePos.x % cellSize),
+      y: isoMousePos.y - (isoMousePos.y % cellSize),
    }
 
    const cartCellPos = {
-      x: cartMouse.cartX - (cartMouse.cartX % cellSize),
-      y: cartMouse.cartY - (cartMouse.cartY % cellSize),
+      x: mousePos.cartX - (mousePos.cartX % cellSize),
+      y: mousePos.cartY - (mousePos.cartY % cellSize),
    }
-
+   
    return {
-      id: `${cellPos.x /cellSize}-${cellPos.y /cellSize}`,
-      x: cellPos.x,
-      y: cellPos.y,
+      id: `${isoCellPos.x /cellSize}-${isoCellPos.y /cellSize}`,
+      x: isoCellPos.x,
+      y: isoCellPos.y,
 
       cellCartX: cartCellPos.x,
       cellCartY: cartCellPos.y,
 
-      isoX: isoMouse.x,
-      isoY: isoMouse.y,
+      isoX: isoMousePos.x,
+      isoY: isoMousePos.y,
 
-      cartX: cartMouse.cartX,
-      cartY: cartMouse.cartY,
-      
-      // cartX: isoMouse.to_CartX,
-      // cartY: isoMouse.to_CartY,
+      cartX: mousePos.screenX,
+      cartY: mousePos.screenY,
 
-      centerX: cellPos.x +cellSize /2,
-      centerY: cellPos.y +cellSize /2,
+      azeX: Math.floor(mousePos.isoX),
+      azeY: Math.floor(mousePos.isoY),
+
+      centerX: isoCellPos.x +cellSize /2,
+      centerY: isoCellPos.y +cellSize /2,
    }
 }
 
@@ -325,14 +409,13 @@ const initProject = () => {
          cell.drawHover(ctx.isoSelect, cellPos, "blue");
       });
 
-
-      drawTree();
-
-
       if(startCell) startCell.drawStartEnd(ctx.isoSelect, startCell_Color);
       if(endCell) endCell.drawStartEnd(ctx.isoSelect, endCell_Color);
       if(agent) agent.displayPath(ctx.isoSelect);
       if(isDrawingWalls) startWall.drawPathWall(ctx.isoSelect, cellPos);
+
+      
+      drawTree();
    });
    
 
