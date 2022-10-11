@@ -9,34 +9,42 @@
       <link rel="stylesheet" href="css/styles.css">
    </head>
 
-   <body class="flexCenter">
+   <body>
       
-      <div class="flexCenter coord-background">
-         <div class="flexCenter coordinates">
+      <section class="coordinates">
+         <span>
+            <p>Cartesian Coord:</p>
+            <p class="cartX">x : 0</p>
+            <p class="cartY">y : 0</p>
+         </span>
 
-            <span class="flexCenter mouse-coord">
-               <p class="flexCenter">Mouse Coordinates:</p>
-               <p class="flexCenter mouseX">x : 0</p>
-               <p class="flexCenter mouseY">y : 0</p>
-            </span>
-   
-            <span class="flexCenter cell-coord">
-               <p class="flexCenter">Cell Coordinates:</p>
-               <p class="flexCenter cellX">x : 0</p>
-               <p class="flexCenter cellY">y : 0</p>
-            </span>
-   
-            <span class="flexCenter cell-id">
-               <p class="flexCenter">Cell ID:</p>
-               <p class="flexCenter ID-cell">id :</p>
-            </span>
-            
-         </div>
-      </div>
+         <span>
+            <p>Isometric Coord:</p>
+            <p class="isoX">x : 0</p>
+            <p class="isoY">y : 0</p>
+         </span>
 
-      <div class="flexCenter isometric">
-         <canvas class="flexCenter canvas-1"></canvas>
-      </div>
+         <span>
+            <p>Cell Coordinates:</p>
+            <p class="cellX">x : 0</p>
+            <p class="cellY">y : 0</p>
+         </span>
+
+         <span>
+            <p>Cell ID:</p>
+            <p class="ID-cell">id :</p>
+         </span>
+      </section>
+
+      <section class="isometric-canvas">
+         <canvas class="canvas-terrain"></canvas>
+         <canvas class="canvas-isoSelect"></canvas>
+      </section>
+      
+      <section class="cartesian-canvas">
+         <canvas class="canvas-buildings"></canvas>
+         <canvas class="canvas-units"></canvas>
+      </section>
 
    </body>
 

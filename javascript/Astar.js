@@ -2,137 +2,207 @@
 
 "use strict"
 
+// ================================================================================================
+// Set DOM & Contexts
+// ================================================================================================
 const DOM = {
-   mouseX: document.querySelector(".coordinates .mouseX"),
-   mouseY: document.querySelector(".coordinates .mouseY"),
-   cellX: document.querySelector(".coordinates .cellX"),
-   cellY: document.querySelector(".coordinates .cellY"),
+   cartX:  document.querySelector(".coordinates .cartX"),
+   cartY:  document.querySelector(".coordinates .cartY"),
+   isoX:   document.querySelector(".coordinates .isoX"),
+   isoY:   document.querySelector(".coordinates .isoY"),
+   cellX:  document.querySelector(".coordinates .cellX"),
+   cellY:  document.querySelector(".coordinates .cellY"),
    cellID: document.querySelector(".coordinates .ID-cell"),
-}
-
-const DebugVar = {
-   
-   isEuclidean: true,
-   // isEuclidean: false,
-
-   // showWallCol: true,
-   showWallCol: false,
-
-   showCellInfo: true,
-   // showCellInfo: false,
 };
 
-const tile_Img = {
-   // src: "images/tiles/GroundTiles.png",
-   src: "images/tiles/TestTiles.png",
-   width: 200,
-   height: 200,
+const canvasObj = {
+   terrain:   document.querySelector(".canvas-terrain"),
+   isoSelect: document.querySelector(".canvas-isoSelect"),
+   buildings: document.querySelector(".canvas-buildings"),
+   units:     document.querySelector(".canvas-units"),
 };
 
-const tree_img = {
-   src: "images/tiles/tree_0.png",
-   width: 158,
-   height: 190,
+const ctx = {
+   terrain:   canvasObj.terrain.getContext("2d"),
+   isoSelect: canvasObj.isoSelect.getContext("2d"),
+   buildings: canvasObj.buildings.getContext("2d"),
+   units:     canvasObj.units.getContext("2d"),
+};
+
+const viewport = {
+   width: 1920,
+   height: 927,
 }
 
-const treePicture = new Image();
-treePicture.src = tree_img.src;
 
-// const cos_45deg = Math.floor(Math.cos(0.785, 1) *1000) /1000;
-const cos_45deg = 0.707;
+// ================================================================================================
+// Grid Variables
+// ================================================================================================
+let gridSize = 960;
+let cellSize = 120;
+let gridHeight = gridSize;
+let gridWidth = gridSize;
+let cos_45deg = 0.707;
 
-// const gridHeight = 800;
-// const gridWidth = 1200;
-// const cellSize = 80;
-
-const gridHeight = 800;
-const gridWidth = 800;
-const cellSize = 100;
-
-// const gridHeight = 800;
-// const gridWidth = 1400;
-// const cellSize = 50;
-
-const canvas = document.querySelector(".canvas-1");
-const ctx = canvas.getContext("2d");
 const grid = new Grid(gridWidth, gridHeight, cellSize);
 
-canvas.width = grid.width;
-canvas.height = grid.height;
+Object.values(canvasObj).forEach(canvas => {
 
+   if(canvas === canvasObj.terrain
+   || canvas === canvasObj.isoSelect) {
+
+      canvas.width = gridWidth;
+      canvas.height = gridHeight;
+   }
+   else {
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+   }
+});
+
+
+// ================================================================================================
+// Project Variables
+// ================================================================================================
 let startCell;
 let endCell;
 let startCell_Color = "yellow";
 let endCell_Color = "red";
-
 let cellPos;
 let agent;
-
 let startWall;
 let isDrawingWalls = false;
 let tempWallsIDArray = [];
 
+const DebugVar = {
+   isEuclidean: true,
+   showWallCol: false,
+   showCellInfo: true,
+};
 
-const clearCanvas = () => {
-   ctx.clearRect(0, 0, canvas.width, canvas.height);
+const tileImg = {
+   // src: "images/tiles/GroundTiles.png",
+   src: "images/tiles/TestTiles.png",
+   size: 200,
+};
+
+
+// ========== TEST ==========
+const treeImg = {
+   src: "images/tiles/tree_0.png",
+   size: 186,
+   offsetX: 99,
+   offsetY: 170,
+};
+
+const treePicture = new Image();
+treePicture.src = treeImg.src;
+
+const drawTree = () => {
+
+   ctx.units.strokeStyle = "darkviolet";
+   ctx.units.lineWidth = 2;
+   ctx.units.strokeRect(
+      500,
+      500,
+      100,
+      100
+   );
+
+   ctx.buildings.drawImage(
+      treePicture,
+      0, 0, treeImg.size, treeImg.size,
+      
+      // Destination
+      // 600,
+      // 200,
+      cellPos.cartX -treeImg.offsetX,
+      cellPos.cartY -treeImg.offsetY,
+      // 200 -treeImg.offsetX,
+      // 200 -treeImg.offsetY,
+      186,
+      186
+   );
 }
+// ========== TEST ==========
 
-const clearClickedCell = (cellPos) => {
-   ctx.clearRect(cellPos.x, cellPos.y, cellSize, cellSize);
+
+// ================================================================================================
+// Project Functions
+// ================================================================================================
+const clearCanvas = () => {
+
+   ctx.isoSelect.clearRect(0, 0, gridWidth, gridHeight);
+   ctx.buildings.clearRect(0, 0, 1920, 927);
+   ctx.units.clearRect(0, 0, 1920, 927);
 }
 
 const setDOM = (cellPos) => {
 
-   DOM.mouseX.textContent = `x : ${cellPos.mouseX}`;
-   DOM.mouseY.textContent = `y : ${cellPos.mouseY}`;
+   DOM.cartX.textContent = `x : ${cellPos.cartX}`;
+   DOM.cartY.textContent = `y : ${cellPos.cartY}`;
+   DOM.isoX.textContent =  `x : ${cellPos.isoX}`;
+   DOM.isoY.textContent =  `y : ${cellPos.isoY}`;
    DOM.cellX.textContent = `x : ${cellPos.x}`;
    DOM.cellY.textContent = `y : ${cellPos.y}`;
    DOM.cellID.textContent = `id : ${cellPos.id}`;
 }
 
-const calcHypotenuse = (distX, distY) => {
-   
-   return Math.floor(Math.sqrt(distX * distX + distY * distY));
-}
-
 const getCellPosition = (event) => {
 
-   const bounderies = canvas.getBoundingClientRect();
+   const cartBounderies = canvasObj.units.getBoundingClientRect();
+   const isoBounderies = canvasObj.isoSelect.getBoundingClientRect();
 
    // Cartesian
    const cartMouse = {
-      x: event.clientX -bounderies.left,
-      y: event.clientY -bounderies.top,
+      cartX: event.clientX -cartBounderies.left,
+      cartY: event.clientY -cartBounderies.top,
+      isoX:  event.clientX -isoBounderies.left,
+      isoY:  event.clientY -isoBounderies.top,
    }
 
    // Isometric
    const isoMouse = {
-      x:  Math.floor( ((cartMouse.x -cartMouse.y *2) /cos_45deg) /2 ) +gridWidth /2,
-      y:  Math.floor( ((cartMouse.x +cartMouse.y *2) /2) /cos_45deg ) -gridWidth /2,
+      x:  Math.floor( ((cartMouse.isoX -cartMouse.isoY *2) /cos_45deg) /2 ) +gridWidth /2,
+      y:  Math.floor( ((cartMouse.isoX +cartMouse.isoY *2) /2) /cos_45deg ) -gridWidth /2,
+
+      // to_CartX:  Math.floor( ((cartMouse.isoY /2 +cartMouse.isoX) *cos_45deg) *2 ) -gridWidth *2,
+      // to_CartY:  Math.floor( ((cartMouse.isoY /2 -cartMouse.isoX) *2) *cos_45deg ) +gridWidth *2,
+
+      to_CartX:  Math.floor( ((cartMouse.isoY /2 +cartMouse.isoX) /cos_45deg) /2 ) -gridWidth /2,
+      to_CartY:  Math.floor( ((cartMouse.isoY /2 -cartMouse.isoX) *2) /cos_45deg ) +gridWidth /2,
    }
 
-   // let mousePos = cartMouse;
-   let mousePos = isoMouse;
-   
+   // Cell Position
    const cellPos = {
-      x: mousePos.x - (mousePos.x % cellSize),
-      y: mousePos.y - (mousePos.y % cellSize),
+      x: isoMouse.x - (isoMouse.x % cellSize),
+      y: isoMouse.y - (isoMouse.y % cellSize),
    }
 
-   let cartCellID = `${cellPos.x /cellSize}-${cellPos.y /cellSize}`;
-   let isoCellID = `${cellPos.x}-${cellPos.y}`;
-
-   let cellID = cartCellID;
-   // let cellID = isoCellID;
+   const cartCellPos = {
+      x: cartMouse.cartX - (cartMouse.cartX % cellSize),
+      y: cartMouse.cartY - (cartMouse.cartY % cellSize),
+   }
 
    return {
-      id: cellID,
+      id: `${cellPos.x /cellSize}-${cellPos.y /cellSize}`,
       x: cellPos.x,
       y: cellPos.y,
+
+      cellCartX: cartCellPos.x,
+      cellCartY: cartCellPos.y,
+
+      isoX: isoMouse.x,
+      isoY: isoMouse.y,
+
+      cartX: cartMouse.cartX,
+      cartY: cartMouse.cartY,
+      
+      // cartX: isoMouse.to_CartX,
+      // cartY: isoMouse.to_CartY,
+
       centerX: cellPos.x +cellSize /2,
       centerY: cellPos.y +cellSize /2,
-      mouseX: mousePos.x,
-      mouseY: mousePos.y,
    }
 }
 
@@ -150,14 +220,14 @@ const startEndPos = (cell) => {
    // Draw StartPos
    if(!startCell) {
       startCell = cell;
-      cell.drawStartEnd(ctx, startCell_Color);
+      cell.drawStartEnd(ctx.isoSelect, startCell_Color);
       drawCellInfo(cell);
    }
    
    // Draw EndPos
    else if(!endCell) {
       endCell = cell;
-      cell.drawStartEnd(ctx, endCell_Color);
+      cell.drawStartEnd(ctx.isoSelect, endCell_Color);
       drawCellInfo(cell);
    }
    
@@ -174,37 +244,33 @@ const drawEraseWall = (cell) => {
 
       isDrawingWalls = true;
       cell.isBlocked = true;
-      cell.drawWall(ctx, false);
+      cell.drawWall(ctx.isoSelect, false);
       startWall = cell;
    }
    
    else {
       isDrawingWalls = false;
       cell.isBlocked = false;
-      clearClickedCell(cellPos);
+      ctx.isoSelect.clearRect(cellPos.x, cellPos.y, cellSize, cellSize);
    }
 
    drawCellInfo(cell);
 }
 
-
-// Cell Infos
 const drawCellInfo = (cell) => {
 
    if(DebugVar.showCellInfo) {
-      cell.drawFrame(ctx);
-      cell.drawCenter(ctx);
-      cell.drawID(ctx);
+      cell.drawFrame(ctx.terrain);
+      cell.drawCenter(ctx.terrain);
+      cell.drawID(ctx.terrain);
    }
 }
 
-// Mouse Hover
 const drawTempWalls = (cell) => {
 
    let isDiamond = true;
 
    const raycast = {
-
       startX: startWall.center.x,
       startY: startWall.center.y,
       endX: cellPos.centerX,
@@ -217,81 +283,63 @@ const drawTempWalls = (cell) => {
    && cell !== startWall) {
       
       tempWallsIDArray.push(cell.id);
-      cell.drawWall(ctx, true);
-      cell.drawWallCollider(ctx, isDiamond, DebugVar.showWallCol);
+      cell.drawWall(ctx.isoSelect, true);
+      cell.drawWallCollider(ctx.isoSelect, isDiamond, DebugVar.showWallCol);
    }
 }
 
-// Mouse Click
 const drawBuiltWalls = (cell) => {
 
    tempWallsIDArray.forEach(id => {
       let tempCell = grid.cellsList[id];
 
       tempCell.isBlocked = true;
-      tempCell.drawWall(ctx, false);
+      tempCell.drawWall(ctx.isoSelect, false);
       drawCellInfo(tempCell);
    });
 
-   startWall.drawPathWall(ctx, cellPos);
+   startWall.drawPathWall(ctx.isoSelect, cellPos);
    startWall = cell;
 }
 
 
 // ================================================================================================
-// Game Handler
+// Project Handler
 // ================================================================================================
-const Game_Handler = () => {
+const initProject = () => {
 
    // ===================================
    // Mouse Hover
    // ===================================
-   canvas.addEventListener("mousemove", (event) => {
+   canvasObj.units.addEventListener("mousemove", (event) => {
 
-      cellPos = getCellPosition(event);
-      setDOM(cellPos);      
       clearCanvas();
+      
+      cellPos = getCellPosition(event);
+      setDOM(cellPos);
       tempWallsIDArray = [];
 
       cycleCells((cell) => {
-         cell.drawPicture(ctx, tile_Img);
-
-         if(cell.isBlocked) cell.drawWall(ctx, false);
+         if(cell.isBlocked) cell.drawWall(ctx.isoSelect, false);
          if(isDrawingWalls) drawTempWalls(cell);
-
-         drawCellInfo(cell);
-         cell.drawHover(ctx, cellPos, "blue");
+         cell.drawHover(ctx.isoSelect, cellPos, "blue");
       });
 
 
-      ctx.drawImage(
-         treePicture,
-
-         // Source
-         0,
-         0,
-         tree_img.width,
-         tree_img.height,
-         
-         // Destination
-         450 -tree_img.width /2,
-         450 -tree_img.height /2,
-         cellSize *2,
-         cellSize *2
-      );
+      drawTree();
 
 
-      if(startCell) startCell.drawStartEnd(ctx, startCell_Color);
-      if(endCell) endCell.drawStartEnd(ctx, endCell_Color);
-      if(agent) agent.displayPath(ctx);
-      if(isDrawingWalls) startWall.drawPathWall(ctx, cellPos);
+      if(startCell) startCell.drawStartEnd(ctx.isoSelect, startCell_Color);
+      if(endCell) endCell.drawStartEnd(ctx.isoSelect, endCell_Color);
+      if(agent) agent.displayPath(ctx.isoSelect);
+      if(isDrawingWalls) startWall.drawPathWall(ctx.isoSelect, cellPos);
    });
    
 
    // ===================================
    // Mouse Click
    // ===================================
-   canvas.addEventListener("mousedown", (event) => {
+   canvasObj.units.addEventListener("mousedown", (event) => {
       
       cycleCells((cell) => {
 
@@ -325,8 +373,8 @@ const Game_Handler = () => {
    
             agent.searchPath();
             agent.showPath = true;
-            // agent.showData = true;
-            agent.displayPath(ctx);
+            agent.showData = false;
+            agent.displayPath(ctx.isoSelect);
          }
 
          else console.log("No path to calculate !"); // ******************************************************
@@ -345,8 +393,36 @@ document.body.oncontextmenu = (event) => {
 
 window.addEventListener("load", () => {
    
-   Game_Handler();  
-   grid.init(DebugVar.isEuclidean, ctx, tile_Img);
-   // grid.init(DebugVar.isEuclidean, ctx, isoTile_img);
-   cycleCells((cell) => drawCellInfo(cell));
+   initProject();
+   grid.init(DebugVar.isEuclidean, ctx.terrain, tileImg);
+   // grid.init(DebugVar.isEuclidean, ctx.terrain, isoTileimg);
+   
+   cycleCells((cell) => {
+      cell.drawPicture(ctx.terrain, tileImg);
+      drawCellInfo(cell);
+   });
 });
+
+
+// sortingLayer(playerList, mobList) {
+
+//    mobList.forEach(mob => {
+//       if(this.circle_toCircle(this, mob, 0, 0, mob.radius)) {
+         
+//          if(this.y > mob.y) this.isCtxPlayer = true;
+//          else this.isCtxPlayer = false;
+//       }
+//    });
+
+//    for(let i in playerList) {
+//       let otherPlayer = playerList[i];
+
+//       if(this !== otherPlayer) {
+//          if(this.circle_toCircle(this, otherPlayer, 0, 0, otherPlayer.radius)) {
+            
+//             if(this.y > otherPlayer.y) this.isCtxPlayer = true;
+//             else this.isCtxPlayer = false;
+//          }
+//       }
+//    };
+// }

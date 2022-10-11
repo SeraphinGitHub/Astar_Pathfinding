@@ -332,10 +332,10 @@ class Cell {
          tilePicture,
 
          // Source
-         this.tileIndex *img.width,
+         this.tileIndex *img.size,
          0,
-         img.width,
-         img.height,
+         img.size,
+         img.size,
          
          // Destination
          this.x,
