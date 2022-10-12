@@ -267,14 +267,14 @@ class Cell {
       );
    }
 
-   drawHover(ctx, position, color) {
+   drawHover(ctx, getCell, color) {
 
       ctx.strokeStyle = color;
       ctx.lineWidth = 4;
    
       ctx.strokeRect(
-         position.x,
-         position.y,
+         getCell.position.x,
+         getCell.position.y,
          this.size,
          this.size
       );
@@ -443,6 +443,8 @@ class Cell {
          this.size,
          this.size
       );
+
+      this.drawFrame(ctx);
    }
 
 }
