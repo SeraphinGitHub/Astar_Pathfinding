@@ -4,7 +4,7 @@
 // =====================================================================
 // Agent Class
 // =====================================================================
-class Agent {
+class AgentClass {
    constructor(startCell, endCell, isEuclidean) {
 
       this.startCell = startCell;
@@ -114,7 +114,7 @@ class Agent {
          let neighborsColor = "rgba(255, 145, 0, 0.4)";
    
          this.closedList.forEach(cell => {
-            cell.drawStartEnd(ctx, neighborsColor);
+            cell.drawCellColor(ctx, neighborsColor);
             if(this.showData) cell.drawData(ctx);
          });
    

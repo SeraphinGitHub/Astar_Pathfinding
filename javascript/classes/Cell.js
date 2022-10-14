@@ -4,7 +4,7 @@
 // =====================================================================
 // Cell Class
 // =====================================================================
-class Cell {
+class CellClass {
    constructor(collums, rows, size, isEuclidean, i, j) {
       
       this.id =`${i}-${j}`;
@@ -48,6 +48,7 @@ class Cell {
       this.gCost = 0;
       this.hCost = 0;
       
+      this.blockingItem;
       this.isBlocked = false;
    }
 
@@ -323,19 +324,16 @@ class Cell {
       );      
    }
 
-   drawPicture(ctx, img, baseTilesTypes, count) {
-
-      const tilePicture = new Image();
-      tilePicture.src = img.src;
+   drawPicture(ctx, file, baseTilesTypes, count) {
 
       ctx.drawImage(
-         tilePicture,
+         file.img,
 
          // Source
-         this.tileIndex *img.size,
+         this.tileIndex *file.size,
          0,
-         img.size,
-         img.size,
+         file.size,
+         file.size,
          
          // Destination
          this.x,
@@ -395,7 +393,6 @@ class Cell {
          this.size,
          this.size
       );
-
    }
 
    drawWallCollider(ctx, isDiamond, showWallCol) {
@@ -426,15 +423,15 @@ class Cell {
       );
 
       ctx.lineTo(
-         mouseCell.centerX,
-         mouseCell.centerY
+         mouseCell.center.x,
+         mouseCell.center.y
       );
 
       ctx.lineWidth = 4;
       ctx.stroke();
    }
 
-   drawStartEnd(ctx, color) {
+   drawCellColor(ctx, color) {
 
       ctx.fillStyle = color;
       ctx.fillRect(

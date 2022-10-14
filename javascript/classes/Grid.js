@@ -4,7 +4,7 @@
 // =====================================================================
 // Grid Class
 // =====================================================================
-class Grid {
+class GridClass {
    constructor(width, height, cellSize) {
 
       this.cellsList = {};
@@ -138,7 +138,7 @@ class Grid {
       for(let i = 0; i < this.collums; i++) {
          for(let j = 0; j < this.rows; j++) {
             
-            const cell = new Cell(this.collums, this.rows, this.cellSize, isEuclidean, i, j);
+            const cell = new CellClass(this.collums, this.rows, this.cellSize, isEuclidean, i, j);
             this.cellsList[cell.id] = cell;
          }
       }
