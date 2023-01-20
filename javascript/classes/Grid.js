@@ -16,62 +16,6 @@ class GridClass {
       this.collums = (width -(width %cellSize)) /cellSize;
       this.rows = (height -(height %cellSize)) /cellSize;
 
-      // Real tiles arrays
-      {
-      /*
-      this.baseTilesTypes = [
-
-         "largeTree",
-         "mediumTree",
-         "smallTree",
-         "grass",
-         "dryGround",
-         "sand",
-         "ocean",
-      ];
-      
-      this.tilesConnections = {
-      
-         largeTree: [
-            "mediumTree",
-         ],
-      
-         mediumTree: [
-            "largeTree",
-            "smallTree",
-         ],
-      
-         smallTree: [
-            "mediumTree",
-            "grass",
-         ],
-      
-         grass: [
-            "smallTree",
-            "dryGround",
-            "sand",
-         ],
-      
-         dryGround: [
-            "grass",
-            "sand",
-         ],
-      
-         sand: [
-            "grass",
-            "dryGround",
-            "ocean",
-         ],
-      
-         ocean: [
-            "sand",
-         ],
-      };
-      */
-      }
-
-
-      // TESTS tiles arrays
       this.baseTilesTypes = [
 
          "largeTree",
@@ -103,25 +47,6 @@ class GridClass {
             "sand",
             "ocean",
          ],
-
-         // largeTree: [
-         //    "largeTree",
-         //    "grass",
-         // ],
-      
-         // grass: [
-         //    "grass",
-         //    "sand",
-         // ],
-      
-         // sand: [
-         //    "sand",
-         //    "ocean",
-         // ],
-      
-         // ocean: [
-         //    "ocean",
-         // ],
       };
 
       this.openTilesList = [];
@@ -148,58 +73,13 @@ class GridClass {
          let cell = this.cellsList[i];
 
          cell.initNeighborsList(this.cellsList);
-         // this.randomGenerator(ctx, img, cell);
-
-         switch(cell.id) {
-
-            case "0-0": cell.tileIndex = 0; 
-            break;
-            case "0-1": cell.tileIndex = 0; 
-            break;
-            case "0-2": cell.tileIndex = 1; 
-            break;
-            case "0-3": cell.tileIndex = 1; 
-            break;
-
-            case "1-0": cell.tileIndex = 0; 
-            break;
-            case "1-1": cell.tileIndex = 1; 
-            break;
-            case "1-2": cell.tileIndex = 1; 
-            break;
-            case "1-3": cell.tileIndex = 2; 
-            break;
-
-            case "2-0": cell.tileIndex = 1; 
-            break;
-            case "2-1": cell.tileIndex = 1; 
-            break;
-            case "2-2": cell.tileIndex = 2; 
-            break;
-            case "2-3": cell.tileIndex = 2; 
-            break;
-
-            case "3-0": cell.tileIndex = 2; 
-            break;
-            case "3-1": cell.tileIndex = 2; 
-            break;
-            case "3-2": cell.tileIndex = 2; 
-            break;
-            case "3-3": cell.tileIndex = 3; 
-            break;
-         }
-
-         cell.drawPicture(ctx, img);
       }
-
-      // this.randomGenerator(ctx, img);
    }
 
 
    // Map Random Generetor
    randomGenerator(ctx, img) {
       
-      {
       let count = 0;
 
       // Set start cell
@@ -247,49 +127,6 @@ class GridClass {
          
          this.openTilesList.splice(0, 1);
          this.closedTilesList.push(cell);
-      }
-      }
-
-      {
-      // if(!cell.tileIndex) {
-         
-      //    // Set other tiles
-      //    if(cell.id !== "0-0" && cell.tilesArray.length !== 0) {
-            
-      //       let randIndex = this.rand(cell.tilesArray.length);
-      //       let tileType = cell.tilesArray[randIndex];
-      //       cell.tileIndex = this.baseTilesTypes.indexOf(tileType);
-
-      //       cell.drawPicture(ctx, img, this.baseTilesTypes);
-
-      //       let nebList = cell.neighborsList;
-            
-      //       // Set Neighbors
-      //       for(let i in nebList) {
-      //          let neighbor = nebList[i];
-               
-      //          neighbor.tilesArray = cell.tilesArray;
-      //       }
-      //    }
-         
-      //    // Set first tile
-      //    else if(cell.id === "0-0") {
-      //       cell.tileIndex = this.rand(this.baseTilesTypes.length);
-      //       let tileType = this.baseTilesTypes[cell.tileIndex];
-      //       cell.tilesArray = this.tilesConnections[tileType];
-
-      //       cell.drawPicture(ctx, img, this.baseTilesTypes);
-
-      //       let nebList = cell.neighborsList;
-            
-      //       // Set Neighbors
-      //       for(let i in nebList) {
-      //          let neighbor = nebList[i];
-               
-      //          neighbor.tilesArray = cell.tilesArray;
-      //       }
-      //    }
-      // }
       }
    }
 

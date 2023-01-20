@@ -7,14 +7,15 @@
 class AgentClass {
    constructor(startCell, endCell, isEuclidean) {
 
-      this.startCell = startCell;
-      this.endCell = endCell;
-      this.openList = [startCell];
+      this.startCell  = startCell;
+      this.endCell    = endCell;
+      this.openList   = [];
       this.closedList = [];
-      this.pathArray = [];
+      this.pathArray  = [];
 
-      this.showPath = false;
-      this.showData = false;
+      this.showPath    = false;
+      this.showData    = false;
+      this.isPathDrawn = false;
       this.isEuclidean = isEuclidean; // Can move diagonally if "true"
    }
 
@@ -29,6 +30,11 @@ class AgentClass {
    }
 
    searchPath() {
+
+      this.openList   = [this.startCell];
+      this.closedList = [];
+      this.pathArray  = [];
+
       while(this.openList.length > 0) {
 
          let lowestIndex = 0;
@@ -71,6 +77,14 @@ class AgentClass {
                this.pathArray.push(temporyCell.cameFromCell);
                temporyCell = temporyCell.cameFromCell;
             }
+            
+            // Reset neighbors data
+            // this.closedList.forEach(cell => {
+            //    cell.hCost = 0;
+            //    cell.gCost = 0;
+            //    cell.fCost = 0;
+            //    cell.cameFromCell = undefined;
+            // });
 
             this.pathArray.reverse();
             return this.pathArray;
@@ -107,7 +121,7 @@ class AgentClass {
       }
    }
 
-   displayPath(ctx) {
+   displayPathAnim(ctx) {
       if(this.showPath) {
 
          // Display scanned neighbors
@@ -120,19 +134,25 @@ class AgentClass {
    
          // Display path
          for(let i = 0; i < this.pathArray.length; i++) {
-   
-            let currentCell = this.pathArray[i];
-            this.drawHitbox(ctx, i, currentCell);
             
-            if(i +1 < this.pathArray.length) {
-               let nextCell = this.pathArray[i +1];
-               this.drawPath(ctx, currentCell, nextCell);
-            }
+            let currentCell = this.pathArray[i];
+            this.drawFullPath(i, ctx, currentCell);
+            
+            if(!this.isPathDrawn) this.drawHitboxDelayed(i, ctx, currentCell);
+            else this.drawCellHitbox(ctx, currentCell);
          }
       }
    }
 
-   drawPath(ctx, currentCell, nextCell) {
+   drawFullPath(i, ctx, currentCell) {
+
+      if(i +1 < this.pathArray.length) {
+         let nextCell = this.pathArray[i +1];
+         this.drawNextCellPath(ctx, currentCell, nextCell);
+      }
+   }
+
+   drawNextCellPath(ctx, currentCell, nextCell) {
       
       ctx.strokeStyle = "lime";
       ctx.beginPath();
@@ -151,22 +171,27 @@ class AgentClass {
       ctx.stroke();
    }
 
-   drawHitbox(ctx, i, currentCell) {
-      
-      let ratio = 0.7; // 70%
-      
-      setTimeout(() => {
-         
-         ctx.fillStyle = "blue";
-         ctx.fillRect(
-            currentCell.center.x -currentCell.size /2 *ratio,
-            currentCell.center.y -currentCell.size /2 *ratio,
-            currentCell.size *ratio,
-            currentCell.size *ratio
-         );
+   drawHitboxDelayed(i, ctx, currentCell) {
 
-         if(this.showData)currentCell.drawData(ctx);         
+      setTimeout(() => {
+         this.drawCellHitbox(ctx, currentCell);
+         if(i === this.pathArray.length -1) this.isPathDrawn = true;
 
       }, 100 *i);
+   }
+
+   drawCellHitbox(ctx, currentCell) {
+      
+      let ratio = 0.7; // 70%
+            
+      ctx.fillStyle = "blue";
+      ctx.fillRect(
+         currentCell.center.x -currentCell.size /2 *ratio,
+         currentCell.center.y -currentCell.size /2 *ratio,
+         currentCell.size *ratio,
+         currentCell.size *ratio
+      );
+
+      if(this.showData)currentCell.drawData(ctx);
    }
 }

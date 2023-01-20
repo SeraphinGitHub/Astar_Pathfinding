@@ -284,7 +284,7 @@ class CellClass {
    drawID(ctx) {
 
       ctx.fillStyle = "black";
-      ctx.font = "20px Verdana";
+      ctx.font = "18px Verdana";
       ctx.textAlign = "center";
 
       ctx.fillText(
@@ -341,30 +341,6 @@ class CellClass {
          this.size,
          this.size
       );
-
-      // ctx.fillStyle = "black";
-      // ctx.font = "20px Verdana";
-      // ctx.textAlign = "center";
-
-      // let i = 0;
-      // let offset = 25;
-
-      // this.tilesArray.forEach(tile => {
-      //    ctx.fillText(
-      //       tile,
-      //       this.center.x,
-      //       this.center.y -offset +i
-      //    );
-
-      //    i += offset;
-      // });
-
-      // ctx.fillStyle = "red";
-      // ctx.fillText(
-      //    count +":"+ baseTilesTypes[this.tileIndex],
-      //    this.center.x,
-      //    this.center.y +offset *2
-      // );
 
       if(count === 0) {
 
@@ -431,7 +407,7 @@ class CellClass {
       ctx.stroke();
    }
 
-   drawCellColor(ctx, color) {
+   drawCellColor(ctx, color, text) {
 
       ctx.fillStyle = color;
       ctx.fillRect(
@@ -440,6 +416,18 @@ class CellClass {
          this.size,
          this.size
       );
+
+      if(text) {
+         ctx.fillStyle = "black";
+         ctx.textAlign = "center";
+         ctx.font      = "bold 24px Verdana";
+   
+         ctx.fillText(
+            text,
+            this.x + (this.size /2),
+            this.y + (this.size /2),
+         );
+      }
 
       this.drawFrame(ctx);
    }

@@ -6,42 +6,51 @@
 // Set DOM & Contexts
 // ================================================================================================
 const DOM = {
-   cartX:   document.querySelector(".coordinates .cartX"),
-   cartY:   document.querySelector(".coordinates .cartY"),
-   isoX:    document.querySelector(".coordinates .isoX"),
-   isoY:    document.querySelector(".coordinates .isoY"),
-   cellX:   document.querySelector(".coordinates .cellX"),
-   cellY:   document.querySelector(".coordinates .cellY"),
-   cellID:  document.querySelector(".coordinates .ID-cell"),
+   Btn: {
+      searchPath: document.querySelector(".search-path-btn"),
+      deletePath: document.querySelector(".delete-path-btn"),
+      showData:   document.querySelector(".toggle-data-btn"),
+      resetMap:   document.querySelector(".reset-map-btn"),
+   },
+
+   cartCanvas: document.querySelector(".cartesian-canvas"),
+
+   cartX:  document.querySelector(".coordinates .cartX"),
+   cartY:  document.querySelector(".coordinates .cartY"),
+   isoX:   document.querySelector(".coordinates .isoX"),
+   isoY:   document.querySelector(".coordinates .isoY"),
+   cellX:  document.querySelector(".coordinates .cellX"),
+   cellY:  document.querySelector(".coordinates .cellY"),
+   cellID: document.querySelector(".coordinates .ID-cell"),
 };
 
 const canvasObj = {
-   terrain:   document.querySelector(".canvas-terrain"),
    isoSelect: document.querySelector(".canvas-isoSelect"),
+   terrain:   document.querySelector(".canvas-terrain"),
    buildings: document.querySelector(".canvas-buildings"),
    units:     document.querySelector(".canvas-units"),
 };
 
 const ctx = {
-   terrain:   canvasObj.terrain.getContext("2d"),
    isoSelect: canvasObj.isoSelect.getContext("2d"),
+   terrain:   canvasObj.terrain.getContext("2d"),
    buildings: canvasObj.buildings.getContext("2d"),
    units:     canvasObj.units.getContext("2d"),
 };
 
 const Viewport = {
-   x: 0,
-   y: 0,
-   width: 1920,
-   height: 927,
+   x:      0,
+   y:      0,
+   width:  0,
+   height: 0,
 }
-
+ 
 
 // ================================================================================================
 // Grid Variables
 // ================================================================================================
-let GridSize = 1000;
-let CellSize = 100;
+let GridSize = 960;
+let CellSize = 80;
 let GridHeight = GridSize;
 let GridWidth = GridSize;
 
@@ -50,19 +59,22 @@ const Cos_30deg = 0.866;
 
 const Grid = new GridClass(GridWidth, GridHeight, CellSize);
 
-Object.values(canvasObj).forEach(canvas => {
+const setCanvas = () => {
 
-   if(canvas === canvasObj.terrain
-   || canvas === canvasObj.isoSelect) {
+   Object.values(canvasObj).forEach(canvas => {
 
-      canvas.width = GridWidth;
-      canvas.height = GridHeight;
-   }
-   else {
-      canvas.width = Viewport.width;
-      canvas.height = Viewport.height;
-   }
-});
+      if(canvas === canvasObj.isoSelect) {
+         canvas.width  = GridWidth;
+         canvas.height = GridHeight;
+      }
+      else {
+         canvas.width  = Viewport.width;
+         canvas.height = Viewport.height;
+      }
+   });
+   
+   DOM.cartCanvas.style = `height: ${Viewport.height}px !important;`;
+}
 
 
 // ================================================================================================
@@ -74,16 +86,17 @@ let EndCell;
 let GetCell;
 let Agent;
 let StartWall;
-let IsDrawingWalls = false;
-let StartCell_Color = "yellow";
-let EndCell_Color = "red";
+let isDrawingWalls   = false;
+let StartCell_Color  = "yellow";
+let EndCell_Color    = "red";
 let TempWallsIDArray = [];
-let TreeList = {};
+let TreeList         = {};
 
 const DebugVar = {
-   isEuclidean: true,
-   showWallCol: false,
+   isEuclidean:  true,
+   showWallCol:  false,
    showCellInfo: true,
+   showData:     false,
 };
 
 
@@ -92,23 +105,23 @@ const DebugVar = {
 // ================================================================================================
 const clearCanvas = () => {
 
-   ctx.isoSelect.clearRect(0, 0, GridWidth, GridHeight);
-   ctx.buildings.clearRect(0, 0, Viewport.width, Viewport.height);
-   ctx.units.clearRect(    0, 0, Viewport.width, Viewport.height);
+   for(let i in ctx) {
+      ctx[i].clearRect(0, 0, Viewport.width, Viewport.height);
+   }
 }
 
 const clearCell = () => {
-   ctx.isoSelect.clearRect(GetCell.position.x, GetCell.position.y, CellSize, CellSize);
+   ctx.buildings.clearRect(GetCell.position.x, GetCell.position.y, CellSize, CellSize);
 }
 
 const setDOM = () => {
 
-   DOM.cartX.textContent =   `x : ${GetCell.cartMouse.x}`;
-   DOM.cartY.textContent =   `y : ${GetCell.cartMouse.y}`;
-   DOM.isoX.textContent =    `x : ${GetCell.isoMouse.x}`;
-   DOM.isoY.textContent =    `y : ${GetCell.isoMouse.y}`;
-   DOM.cellX.textContent =   `x : ${GetCell.position.x}`;
-   DOM.cellY.textContent =   `y : ${GetCell.position.y}`;
+   DOM.cartX.textContent  =  `x : ${GetCell.cartMouse.x}`;
+   DOM.cartY.textContent  =  `y : ${GetCell.cartMouse.y}`;
+   DOM.isoX.textContent   =  `x : ${GetCell.isoMouse.x}`;
+   DOM.isoY.textContent   =  `y : ${GetCell.isoMouse.y}`;
+   DOM.cellX.textContent  =  `x : ${GetCell.position.x}`;
+   DOM.cellY.textContent  =  `y : ${GetCell.position.y}`;
    DOM.cellID.textContent = `id : ${GetCell.id}`;
 }
 
@@ -126,27 +139,27 @@ const gridPos_toScreenPos = (cellPos) => {
    // Cartesian <== Isometric
    let TempX = Math.floor( (cellPos.x + cellPos.y) *Cos_45deg );
    let TempY = Math.floor( (cellPos.y + GridWidth /2) *Cos_45deg *2 -TempX ) /2;
-
+   
    return {
       x: Math.floor( Viewport.width  /2 - Cos_45deg /2 *(GridHeight +GridWidth) +TempX ),
       y: Math.floor( Viewport.height /2 - Cos_45deg /4 *(GridHeight +GridWidth) +TempY +Cos_30deg *CellSize /2 ),
    };
 }
 
-const GetCellPos = (event) => {
+const getCellPos = (event) => {
    
-   let screenBound = canvasObj.units.getBoundingClientRect();
-   let isoGridBound = canvasObj.terrain.getBoundingClientRect();
+   let screenBound  = canvasObj.units.getBoundingClientRect();
+   let isoGridBound = canvasObj.isoSelect.getBoundingClientRect();
 
    const cartMouse = {
       screen: {
-         x: event.clientX -screenBound.left,
-         y: event.clientY -screenBound.top,
+         x: Math.floor(event.clientX -screenBound.left),
+         y: Math.floor(event.clientY -screenBound.top),
       },
 
       isoGrid: {
-         x: event.clientX -isoGridBound.left,
-         y: event.clientY -isoGridBound.top,
+         x: Math.floor(event.clientX -isoGridBound.left),
+         y: Math.floor(event.clientY -isoGridBound.top),
       },
    }
 
@@ -199,22 +212,20 @@ const startEndPos = (cell) => {
    // Draw StartPos
    if(!StartCell) {
       StartCell = cell;
-      cell.drawCellColor(ctx.isoSelect, StartCell_Color);
-      drawCellInfo(cell);
+      cell.drawCellColor(ctx.isoSelect, StartCell_Color, "Start");
    }
    
    // Draw EndPos
    else if(!EndCell) {
       EndCell = cell;
-      cell.drawCellColor(ctx.isoSelect, EndCell_Color);
-      drawCellInfo(cell);
+      cell.drawCellColor(ctx.isoSelect, EndCell_Color, "End");
    }
    
    // Erase StartPos && EndPos
-   else {
-      if(EndCell && GetCell.id === EndCell.id) EndCell = undefined;
-      if(StartCell && GetCell.id === StartCell.id) StartCell = undefined;
-   }
+   // else {
+   //    if(EndCell   && GetCell.id === EndCell.id)   EndCell   = undefined;
+   //    if(StartCell && GetCell.id === StartCell.id) StartCell = undefined;
+   // }
 }
 
 const renderBlockingItems = (cell) => {
@@ -235,10 +246,10 @@ const renderBlockingItems = (cell) => {
 const addRemove_Wall = (cell) => {
 
    // Add wall
-   if(!IsDrawingWalls && !cell.isBlocked) {
+   if(!isDrawingWalls && !cell.isBlocked) {
 
       StartWall = cell;
-      IsDrawingWalls = true;
+      isDrawingWalls = true;
       cell.isBlocked = true;
       cell.blockingItem = "wall";
       cell.drawWall(ctx.isoSelect, false);
@@ -246,13 +257,11 @@ const addRemove_Wall = (cell) => {
    
    // Remove wall
    else {
-      IsDrawingWalls = false;
+      isDrawingWalls = false;
       cell.isBlocked = false;
       cell.blockingItem = undefined;
       clearCell();
    }
-
-   drawCellInfo(cell); // *************
 }
 
 const addRemove_Tree = (cell) => {
@@ -268,7 +277,7 @@ const addRemove_Tree = (cell) => {
          cell.isBlocked = true;
          cell.blockingItem = "tree";
          TreeList[cell.id] = GetCell.screen;
-         drawTree( GetCell.screen);
+         drawTree(GetCell.screen);
          renderBlockingItems(cell);
       }
    }
@@ -282,6 +291,40 @@ const addRemove_Tree = (cell) => {
    }
 }
 
+const resetCellsCosts = (cell) => {
+
+   cell.gCost = 0;
+   cell.fCost = 0;
+   cell.hCost = 0;
+   cell.cameFromCell = undefined;
+}
+
+const resetMap = () => {
+
+   clearCanvas();
+            
+   TempWallsIDArray = [];
+   TreeList         = {};
+   isDrawingWalls   = false
+
+   Agent     = undefined;
+   StartCell = undefined;
+   EndCell   = undefined;
+
+   cycleCells((cell) => {
+      cell.isBlocked = false;
+      resetCellsCosts(cell);            
+      drawCellInfo(cell);
+   });
+}
+
+const togglePathData = () => {
+   
+   if(DebugVar.showData) DebugVar.showData = false;
+   else DebugVar.showData = true;
+   Keyboard_Enter();
+}
+
 
 // ================================================================================================
 // Draw Functions
@@ -289,9 +332,9 @@ const addRemove_Tree = (cell) => {
 const drawCellInfo = (cell) => {
 
    if(DebugVar.showCellInfo) {
-      cell.drawFrame(ctx.terrain);
-      cell.drawCenter(ctx.terrain);
-      cell.drawID(ctx.terrain);
+      cell.drawFrame(ctx.isoSelect);
+      cell.drawCenter(ctx.isoSelect);
+      cell.drawID(ctx.isoSelect);
    }
 }
 
@@ -325,7 +368,6 @@ const drawBuiltWalls = (cell) => {
       tempCell.isBlocked = true;
       tempCell.blockingItem = "wall";
       tempCell.drawWall(ctx.isoSelect, false);
-      drawCellInfo(tempCell);
    });
 
    StartWall.drawPathWall(ctx.isoSelect, GetCell);
@@ -346,6 +388,23 @@ const drawTree = (position) => {
    );
 }
 
+const redrawItems = () => {
+
+   cycleCells((cell) => {
+      drawCellInfo(cell);
+      if(isDrawingWalls) drawTempWalls(cell);
+      if(cell.isBlocked) renderBlockingItems(cell);
+   });
+
+   for(let i in TreeList) drawTree(TreeList[i]);
+
+   if(HoverCell) HoverCell.drawHover(ctx.isoSelect, GetCell, "blue");
+   if(StartCell) StartCell.drawCellColor(ctx.isoSelect, StartCell_Color, "Start");
+   if(EndCell)   EndCell.drawCellColor(ctx.isoSelect, EndCell_Color, "End");
+   if(Agent)     Agent.displayPathAnim(ctx.isoSelect);
+   if(isDrawingWalls) StartWall.drawPathWall(ctx.isoSelect, GetCell);
+}
+
 
 // ================================================================================================
 // Mouse Inputs
@@ -356,35 +415,17 @@ const Mouse_Move = (event) => {
    TempWallsIDArray = [];
 
    // Set hover cell & DOM
-   GetCell = GetCellPos(event);
+   GetCell   = getCellPos(event);
    HoverCell = Grid.cellsList[GetCell.id];
-   setDOM();
    
-   // Render blocking items
-   cycleCells((cell) => {
-      if(IsDrawingWalls) drawTempWalls(cell);
-      if(cell.isBlocked) renderBlockingItems(cell);
-   });
-   for(let i in TreeList) drawTree(TreeList[i]);
-
-
-   // Redraw existing items after canvas cleared
-   if(HoverCell) HoverCell.drawHover(ctx.isoSelect, GetCell, "blue");
-   if(StartCell) StartCell.drawCellColor(ctx.isoSelect, StartCell_Color);
-   if(EndCell) EndCell.drawCellColor(ctx.isoSelect, EndCell_Color);
-   if(Agent) Agent.displayPath(ctx.isoSelect);
-   if(IsDrawingWalls) StartWall.drawPathWall(ctx.isoSelect, GetCell);
-
-   // Draw cursor tree ==> While inside grid
-   // withinTheGrid(() => {
-   //    drawTree(GetCell.screen);
-   // });
+   withinTheGrid( setDOM );
+   redrawItems();
 }
 
 const Mouse_LeftBtn = (state) => {
    
    if(state === "Down") {
-      if(IsDrawingWalls) drawBuiltWalls(HoverCell);
+      if(isDrawingWalls) drawBuiltWalls(HoverCell);
       else startEndPos(HoverCell);   
    }
 }
@@ -403,6 +444,21 @@ const Mouse_ScrollBtn = (state) => {
    }
 }
 
+const NavBar_Buttons = () => {
+
+   for(let i in DOM.Btn) {
+      let btn = DOM.Btn[i];
+
+      btn.addEventListener("mousedown", () => {
+         
+         if(btn === DOM.Btn.searchPath) Keyboard_Enter();
+         if(btn === DOM.Btn.deletePath) Keyboard_Escape();
+         if(btn === DOM.Btn.showData)   togglePathData();        
+         if(btn === DOM.Btn.resetMap)   resetMap();
+      });
+   }
+}
+
 
 // ================================================================================================
 // Keyboard Inputs
@@ -410,20 +466,29 @@ const Mouse_ScrollBtn = (state) => {
 const Keyboard_Enter = () => {
 
    if(StartCell && EndCell) {
-      Agent = new AgentClass(StartCell, EndCell, DebugVar.isEuclidean);
 
+      Agent = new AgentClass(StartCell, EndCell, DebugVar.isEuclidean);
+      
       Agent.searchPath();
       Agent.showPath = true;
-      Agent.showData = false;
-      Agent.displayPath(ctx.isoSelect);
-   }
+      Agent.showData = DebugVar.showData;
 
+      clearCanvas();
+      redrawItems();
+   }
    else alert("< No path  to calculate ! >");
 }
 
-const Keyboard_Esc = () => {
+const Keyboard_Escape = () => {
 
-   location.reload();
+   Agent     = undefined;
+   StartCell = undefined;
+   EndCell   = undefined;
+
+   clearCanvas();
+   redrawItems();
+
+   cycleCells((cell) => resetCellsCosts(cell));
 }
 
 
@@ -431,6 +496,8 @@ const Keyboard_Esc = () => {
 // Project Handler
 // ================================================================================================
 const initProject = () => {
+
+   NavBar_Buttons();
 
    // Mouse move
    canvasObj.units.addEventListener("mousemove", (event) => Mouse_Move(event));
@@ -452,8 +519,8 @@ const initProject = () => {
    window.addEventListener("keydown", (event) => {
 
       if(event.key === "Enter")  Keyboard_Enter();
-      if(event.key === "Escape") Keyboard_Esc();
-   });
+      if(event.key === "Escape") Keyboard_Escape();
+   });   
 }
 
 document.body.oncontextmenu = (event) => {
@@ -463,10 +530,14 @@ document.body.oncontextmenu = (event) => {
 
 window.addEventListener("load", () => {
    
+   Viewport.width  = window.screen.availWidth;
+   Viewport.height = window.screen.availHeight;
+
+   setCanvas();
    loadImages();
    initProject();
 
-   Grid.init(DebugVar.isEuclidean, ctx.terrain, Artworks.tile);
+   Grid.init(DebugVar.isEuclidean, ctx.isoSelect, Artworks.tile);
    
    cycleCells((cell) => {
       cell.drawPicture(ctx.terrain, Artworks.tile);
